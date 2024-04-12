@@ -2,5 +2,5 @@
     import Contact from "$lib/Contact.svelte";
 </script>
 
-<!-- <h1>About Me</h1> -->
+<!-- <h1>Wallpapers</h1> -->
 <Contact />

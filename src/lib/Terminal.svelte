@@ -15,10 +15,11 @@
         "Izzy Mansurov",
         "-------------",
         "",
-        "I'm an iOS Developer with interest in Machine Learning and low-level graphics.",
+        "I'm an iOS Developer with interest in low-level graphics.",
         "I am an avid Snowboarder, ping me if you have a ride in mind.",
         "I, also love history and maps!",
-        "Check my projects out.",
+        "Check my portfolio out.",
+        "",
     ];
 
     function handleSubmit() {
@@ -33,7 +34,7 @@
         const hours = now.getHours().toString().padStart(2, "0");
         const minutes = now.getMinutes().toString().padStart(2, "0");
         const seconds = now.getSeconds().toString().padStart(2, "0");
-        prompt = `${"..".repeat(31)} at ${hours}:${minutes}:${seconds}`;
+        prompt = `~${"..".repeat(31)} at ${hours}:${minutes}:${seconds}`;
     }
 
     function typeOutAboutMe(index) {
@@ -48,7 +49,7 @@
         if (typingIndex < text.length) {
             typingText += text[typingIndex];
             typingIndex++;
-            setTimeout(() => typeNextCharacter(text, index), 50);
+            setTimeout(() => typeNextCharacter(text, index), 70);
         } else {
             history = [...history, text];
             setTimeout(() => typeOutAboutMe(index + 1), 500);
