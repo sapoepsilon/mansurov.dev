@@ -3,14 +3,15 @@
     --teal-green: #175873;
     --teal: #2B7C85;
     --seafoam-green: #87ACA3;
+    --white: #FFFFFF;
     --royal-blue: #0C1446;
     --button-color: var(--teal);
     /* Example: Assigning button color */
     --navbar-background: rgba(43, 124, 133, 0.5);
     /* Example: Teal with transparency */
-    --link-color: var(--seafoam-green);
+    --link-color: var(grey);
     /* Example: Default link color */
-    --active-link-color: var(--royal-blue);
+    --active-link-color: var(white);
     /* Example: Active link color */
     --hover-link-color: var(--teal-green);
     /* Example: Hover link color */

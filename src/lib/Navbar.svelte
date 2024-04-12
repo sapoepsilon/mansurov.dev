@@ -12,7 +12,7 @@
 </script>
 
 <nav>
-  <a href="/" class={isActive("/")}>Home</a>
+  <a href="/home" class={isActive("/home")}>Home</a>
   <a href="/about" class={isActive("/about")}>About Me</a>
   <a href="/portfolio" class={isActive("/portfolio")}>Portfolio</a>
   <a href="/contact" class={isActive("/contact")}>Contact Me</a>
