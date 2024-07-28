@@ -35,7 +35,18 @@
 				<DropdownMenu.Trigger><Menu size={24} /></DropdownMenu.Trigger>
 				<DropdownMenu.Content>
 					{#each menuItems as item}
-						<DropdownMenu.Item on:click={() => goto(item.path)}>{item.name}</DropdownMenu.Item>
+						<DropdownMenu.Item
+								on:click={() => goto(item.path)}
+								class={cn(
+                        "text-sm font-medium transition-colors",
+                        currentPath === item.path ? "text-green-500 bg-green-100 dark:bg-green-900" : ""
+                    )}
+						>
+							{item.name}
+							{#if currentPath === item.path}
+								<span class="ml-2">•</span>
+							{/if}
+						</DropdownMenu.Item>
 					{/each}
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
