@@ -1,5 +1,6 @@
 <script lang="ts">
-	import HireMe from '$lib/components/routes/HireMe.svelte';
+import HireMe from "@/components/routes/HireMe.svelte";
 </script>
 
 <HireMe />
+

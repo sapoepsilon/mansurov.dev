@@ -24,6 +24,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@internationalized/date": "^3.5.5",
 		"@supabase/supabase-js": "^2.44.4",
 		"bits-ui": "^0.21.12",
 		"clsx": "^2.1.1",

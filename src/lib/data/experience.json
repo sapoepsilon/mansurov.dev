@@ -1,0 +1,14 @@
+[
+  {
+    "title": "Frontend Developer",
+    "company": "Acme Inc.",
+    "period": "2019 to present",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+  },
+  {
+    "title": "Intern",
+    "company": "Widgets Co.",
+    "period": "Summer 2018",
+    "description": "Assisted the frontend team in building and improving the company's web application."
+  }
+]
