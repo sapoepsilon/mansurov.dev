@@ -1,5 +1,7 @@
 <script lang="ts">
 	import * as Menubar from "$lib/components/ui/menubar";
+	import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+	import { Menu } from 'lucide-svelte';
 	import { cn } from "$lib/utils";
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
@@ -19,35 +21,51 @@
 	function goToHome() {
 		goto('/about');
 	}
+	function handleKeyDown(event) {
+		if (event.key === 'Enter' || event.key === ' ') {
+			goToHome();
+		}
+	}
 </script>
 
-<Menubar.Root class={cn("flex items-center justify-between h-[48px] px-4 bg-background")}>
-	<img
-			alt="The project logo"
-			src={logoLight}
-			class="h-full lg:ml-2 md:ml-1 object-contain dark:hidden cursor-pointer"
-			on:click={goToHome}
-	/>
-	<img
-			alt="The project logo"
-			src={logoDark}
-			class="h-full lg:ml-2 md:ml-1 object-contain hidden dark:block cursor-pointer"
-			on:click={goToHome}
-	/>
-	<Menubar.Menu>
-		<div class="flex items-center space-x-6">
-			{#each menuItems as item}
-				<Menubar.Item
-						on:click={() => goto(item.path)}
-						class={cn(
+<Menubar.Root class="flex items-center justify-between h-[48px] px-4 bg-background w-full">
+	<div class="flex items-center">
+		<div class="sm:hidden mr-4">
+			<DropdownMenu.Root>
+				<DropdownMenu.Trigger><Menu size={24} /></DropdownMenu.Trigger>
+				<DropdownMenu.Content>
+					{#each menuItems as item}
+						<DropdownMenu.Item on:click={() => goto(item.path)}>{item.name}</DropdownMenu.Item>
+					{/each}
+				</DropdownMenu.Content>
+			</DropdownMenu.Root>
+		</div>
+		<a href="/about" on:click|preventDefault={goToHome} on:keydown={handleKeyDown} class="h-[32px]">
+			<img
+					alt="The project logo"
+					src={logoLight}
+					class="h-full w-auto object-contain dark:hidden"
+			/>
+			<img
+					alt="The project logo"
+					src={logoDark}
+					class="h-full w-auto object-contain hidden dark:block"
+			/>
+		</a>
+	</div>
+	<div class="hidden sm:flex items-center space-x-6">
+		{#each menuItems as item}
+			<a
+					href={item.path}
+					on:click|preventDefault={() => goto(item.path)}
+					class={cn(
                     "text-sm font-medium hover:text-green-500 transition-colors",
                     currentPath === item.path ? "text-green-500" : "text-white-700"
                 )}
-				>
-					{item.name}
-				</Menubar.Item>
-			{/each}
-			<DarkModeToggle />
-		</div>
-	</Menubar.Menu>
+			>
+				{item.name}
+			</a>
+		{/each}
+		<DarkModeToggle />
+	</div>
 </Menubar.Root>
