@@ -1,14 +1,20 @@
 [
   {
-    "title": "Frontend Developer",
-    "company": "Acme Inc.",
-    "period": "2019 to present",
-    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+    "title": "Lead Developer",
+    "company": "Vius Built",
+    "period": "2024-Present",
+    "description": "Leading development projects and initiatives."
   },
   {
-    "title": "Intern",
-    "company": "Widgets Co.",
-    "period": "Summer 2018",
-    "description": "Assisted the frontend team in building and improving the company's web application."
+    "title": "Software Engineer TA",
+    "company": "Ensign College",
+    "period": "2023-2024",
+    "description": "Assisting students with software engineering concepts and projects."
+  },
+  {
+    "title": "Software Developer II",
+    "company": "Sorenson",
+    "period": "2022-2023",
+    "description": "Developed and maintained software solutions."
   }
 ]

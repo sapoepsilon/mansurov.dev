@@ -3,8 +3,8 @@
     import { Skeleton } from "$lib/components/ui/skeleton";
 </script>
 
-<div class="block w-full max-w-2xl mx-auto">
-    <Card.Root class="flex flex-col sm:flex-row md:flex-row bg-card text-card-foreground lg:w-4/5 md:w-4/5">
+<div class="block w-full">
+    <Card.Root class="flex flex-col sm:flex-row md:flex-row bg-card text-card-foreground w-full">
         <div class="w-full sm:w-1/4 aspect-video sm:aspect-square overflow-hidden">
             <Skeleton class="w-full h-full" />
         </div>

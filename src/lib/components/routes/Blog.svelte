@@ -1,10 +1,8 @@
 <script lang="ts">
 	import { cn } from "$lib/utils";
 	import BlogCard from "$lib/components/BlogCard.svelte";
-	import { slide, fade } from 'svelte/transition';
-	import { Skeleton } from "$lib/components/ui/skeleton";
+	import { fly, fade } from 'svelte/transition';
 	import BlogCardSkeleton from "@/components/BlogCardSkeleton.svelte";
-	import { onMount, tick } from 'svelte';
 
 	export let blogPosts: Array<{
 		id: string;
@@ -14,16 +12,12 @@
 		created_at: string;
 	}>;
 
-	let isLoading = true;
-	let mounted = false;
+	let isLoaded = false;
 
-	onMount(async () => {
-		// Simulating loading delay
-		await new Promise(resolve => setTimeout(resolve, 2000));
-		isLoading = false;
-		await tick();
-		mounted = true;
-	});
+	// Simulate a delay to show the skeleton
+	setTimeout(() => {
+		isLoaded = true;
+	}, 1000);  // Adjust this delay as needed
 </script>
 
 <section
@@ -34,16 +28,14 @@
 		<h1 class="text-4xl md:text-6xl font-bold mb-2">Blog</h1>
 		<p class="text-xl md:text-2xl text-muted-foreground mb-8">My thoughts</p>
 	</div>
-	<div class="w-full max-w-2xl mx-auto space-y-4">
-		{#if isLoading}
-			{#each Array(3) as _, i}
-				<div in:slide="{{ duration: 300, delay: i * 100 }}">
-					<BlogCardSkeleton />
-				</div>
+	<div class="w-full md:w-4/5 max-w-5xl mx-auto space-y-4">
+		{#if !isLoaded}
+			{#each Array(3) as _}
+				<BlogCardSkeleton />
 			{/each}
-		{:else if mounted}
+		{:else}
 			{#each blogPosts as post, i (post.id)}
-				<div in:slide="{{ duration: 300, delay: i * 100 }}">
+				<div in:fly="{{ x: -500, duration: 300, delay: i * 100 }}">
 					<BlogCard
 							id={post.id}
 							title={post.title}
