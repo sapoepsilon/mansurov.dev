@@ -38,7 +38,7 @@
 		"@threlte/rapier": "^2.0.1",
 		"@threlte/theatre": "^2.1.8",
 		"@threlte/xr": "^0.1.4",
-		"bits-ui": "^0.21.13",
+		"bits-ui": "^0.21.15",
 		"clsx": "^2.1.1",
 		"dotenv": "^16.4.5",
 		"formsnap": "^1.0.1",

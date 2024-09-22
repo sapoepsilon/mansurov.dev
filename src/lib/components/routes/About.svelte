@@ -5,7 +5,7 @@
 </script>
 
 <Hero />
-<div class="relative h-[300vh]">
+<!-- <div class="relative h-[300vh]">
     <div class="sticky top-0 h-screen overflow-hidden">
         <Canvas>
             <Scene />
@@ -23,4 +23,4 @@
             <p class="text-xl text-foreground dark:text-foreground max-w-md">My skills range from front-end development to 3D modeling, always pushing the boundaries of what's possible on the web.</p>
         </div>
     </div>
-</div>
+</div> -->
