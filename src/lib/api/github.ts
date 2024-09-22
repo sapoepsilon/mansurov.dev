@@ -1,35 +1,21 @@
+// src/lib/api/github.ts
 import type { GitHubRepo } from '../types';
 
-const GITHUB_API_URL = 'https://api.github.com';
-const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN;
-const GITHUB_USERNAME = import.meta.env.VITE_GITHUB_USERNAME;
-
-const headers = {
-	Authorization: `token ${GITHUB_TOKEN}`,
-	'Content-Type': 'application/json',
-};
-
 export async function fetchProjects(): Promise<GitHubRepo[]> {
-	const response = await fetch(
-		`${GITHUB_API_URL}/users/${GITHUB_USERNAME}/repos?sort=updated&direction=desc`,
-		{ headers }
-	);
+	const response = await fetch('/api/github');
 	if (!response.ok) {
 		throw new Error('Failed to fetch repositories');
 	}
-	const repos: GitHubRepo[] = await response.json();
-	return repos.map(repo => ({ ...repo, pinned: false }));
+	return await response.json();
 }
 
 export async function updateProject(repo: GitHubRepo): Promise<GitHubRepo> {
-	const response = await fetch(`${GITHUB_API_URL}/repos/${repo.full_name}`, {
+	const response = await fetch('/api/github', {
 		method: 'PATCH',
-		headers,
-		body: JSON.stringify({
-			name: repo.name,
-			description: repo.description,
-			topics: repo.topics,
-		}),
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(repo),
 	});
 	if (!response.ok) {
 		throw new Error('Failed to update repository');
@@ -38,6 +24,5 @@ export async function updateProject(repo: GitHubRepo): Promise<GitHubRepo> {
 }
 
 export async function pinProject(repo: GitHubRepo, pin: boolean): Promise<void> {
-	// GitHub doesn't have a direct API for pinning repos, so we'll just update our local state
 	repo.pinned = pin;
 }
