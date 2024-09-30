@@ -11,6 +11,7 @@
 
     let userEmail: string = '';
     let userMessage: string = '';
+    let isLoading: boolean = false;
 
     async function sendMessage() {
         if (!userEmail || !userMessage) {
@@ -18,12 +19,32 @@
             return;
         }
 
-        // Here you would typically send the message to your backend
-        console.log('Sending message:', { email: userEmail, message: userMessage });
-        alert('Message sent successfully!');
-        // Reset form
-        userEmail = '';
-        userMessage = '';
+        isLoading = true;
+
+        try {
+            const response = await fetch('/api/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email: userEmail, message: userMessage })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert('Message sent successfully!');
+                // Reset form
+                userEmail = '';
+                userMessage = '';
+            } else {
+                alert(`Failed to send message: ${result.error}`);
+            }
+        } catch (error) {
+            alert('Failed to send message');
+        } finally {
+            isLoading = false;
+        }
     }
 </script>
 
@@ -52,7 +73,13 @@
                 <form on:submit|preventDefault={sendMessage} class="space-y-4">
                     <Input type="email" bind:value={userEmail} placeholder="Your email" required />
                     <Textarea bind:value={userMessage} placeholder="Your message" required />
-                    <Button type="submit" class="w-full">Send Message</Button>
+                    <Button type="submit" class="w-full" disabled={isLoading}>
+                        {#if isLoading}
+                            Sending...
+                        {:else}
+                            Send Message
+                        {/if}
+                    </Button>
                 </form>
             </div>
         </div>
