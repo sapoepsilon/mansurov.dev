@@ -50,7 +50,7 @@
         });
     });
 
-    // Function to search for images on Unsplash
+    // Function to search for images using Lorem Picsum
     async function searchImages(loadMore = false) {
         if (!searchQuery.trim() && !loadMore) return;
         
@@ -61,69 +61,98 @@
         
         isSearching = true;
         try {
-            // Using Unsplash API (you'll need to register for an API key)
-            // For demo purposes, we're using a placeholder API endpoint
-            // In production, you should use your own Unsplash API key
-            const response = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&page=${unsplashPage}&per_page=12`, {
-                headers: {
-                    'Authorization': 'Client-ID YOUR_UNSPLASH_API_KEY' // Replace with your API key
-                }
-            });
+            // Using Lorem Picsum API - no API key required
+            const response = await fetch(`https://picsum.photos/v2/list?page=${unsplashPage}&limit=12`);
             
             if (response.ok) {
                 const data = await response.json();
-                if (loadMore) {
-                    searchResults = [...searchResults, ...(data.results || [])];
-                } else {
-                    searchResults = data.results || [];
+                
+                // Filter images by search query if provided
+                let filteredData = data;
+                if (searchQuery.trim()) {
+                    const query = searchQuery.toLowerCase();
+                    filteredData = data.filter(img => 
+                        img.author.toLowerCase().includes(query) || 
+                        img.id.toString().includes(query)
+                    );
                 }
-                hasMoreResults = data.total_pages > unsplashPage;
+                
+                // Transform data to match our expected format
+                const formattedResults = filteredData.map(img => ({
+                    id: img.id,
+                    urls: {
+                        small: `https://picsum.photos/id/${img.id}/300/200`,
+                        regular: `https://picsum.photos/id/${img.id}/800/600`
+                    },
+                    alt_description: `Photo by ${img.author}`,
+                    user: {
+                        name: img.author,
+                        links: { html: img.url || "#" }
+                    },
+                    width: img.width,
+                    height: img.height
+                }));
+                
+                if (loadMore) {
+                    searchResults = [...searchResults, ...formattedResults];
+                } else {
+                    searchResults = formattedResults;
+                }
+                
+                // Picsum has 30+ pages of images
+                hasMoreResults = true;
                 unsplashPage++;
             } else {
                 console.error('Failed to fetch images');
-                // For demo, show some placeholder results
-                const placeholders = Array(6).fill().map((_, i) => ({
-                    id: i + searchResults.length,
-                    urls: {
-                        small: `https://via.placeholder.com/300x200?text=Image+${i+1}`,
-                        regular: `https://via.placeholder.com/800x600?text=Image+${i+1}`
-                    },
-                    alt_description: `Placeholder image ${i+1}`,
-                    user: {
-                        name: "Placeholder User",
-                        links: { html: "#" }
-                    }
-                }));
+                // Generate random image placeholders using Picsum
+                const placeholders = Array(12).fill().map((_, i) => {
+                    const randomId = Math.floor(Math.random() * 1000);
+                    return {
+                        id: randomId,
+                        urls: {
+                            small: `https://picsum.photos/seed/${randomId}/300/200`,
+                            regular: `https://picsum.photos/seed/${randomId}/800/600`
+                        },
+                        alt_description: `Random image ${i+1}`,
+                        user: {
+                            name: "Lorem Picsum",
+                            links: { html: "https://picsum.photos" }
+                        }
+                    };
+                });
                 
                 if (loadMore) {
                     searchResults = [...searchResults, ...placeholders];
                 } else {
                     searchResults = placeholders;
                 }
-                hasMoreResults = loadMore; // Only show "load more" once for placeholders
+                hasMoreResults = true;
             }
         } catch (error) {
             console.error('Error searching images:', error);
-            // Fallback to placeholders
-            const placeholders = Array(6).fill().map((_, i) => ({
-                id: i + searchResults.length,
-                urls: {
-                    small: `https://via.placeholder.com/300x200?text=Image+${i+1}`,
-                    regular: `https://via.placeholder.com/800x600?text=Image+${i+1}`
-                },
-                alt_description: `Placeholder image ${i+1}`,
-                user: {
-                    name: "Placeholder User",
-                    links: { html: "#" }
-                }
-            }));
+            // Generate random image placeholders using Picsum
+            const placeholders = Array(12).fill().map((_, i) => {
+                const randomId = Math.floor(Math.random() * 1000);
+                return {
+                    id: randomId,
+                    urls: {
+                        small: `https://picsum.photos/seed/${randomId}/300/200`,
+                        regular: `https://picsum.photos/seed/${randomId}/800/600`
+                    },
+                    alt_description: `Random image ${i+1}`,
+                    user: {
+                        name: "Lorem Picsum",
+                        links: { html: "https://picsum.photos" }
+                    }
+                };
+            });
             
             if (loadMore) {
                 searchResults = [...searchResults, ...placeholders];
             } else {
                 searchResults = placeholders;
             }
-            hasMoreResults = loadMore; // Only show "load more" once for placeholders
+            hasMoreResults = true;
         } finally {
             isSearching = false;
         }
@@ -131,6 +160,12 @@
 
     function selectImage(imageUrl) {
         $formData.imageUrl = imageUrl;
+    }
+    
+    // Function to get a random image
+    function getRandomImage() {
+        const randomSeed = Math.random().toString(36).substring(2, 8);
+        $formData.imageUrl = `https://picsum.photos/seed/${randomSeed}/800/600`;
     }
 
     // Handle file drop
@@ -523,16 +558,18 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                 </svg>
-                                Search for images
+                                Find Images
                             </h4>
-                            <div class="flex space-x-2">
-                                <Input 
-                                    type="text" 
-                                    bind:value={searchQuery} 
-                                    placeholder="Search for images..." 
-                                    class="flex-grow"
-                                    on:keydown={(e) => e.key === 'Enter' && searchImages()}
-                                />
+                            <div class="flex flex-wrap gap-2">
+                                <Button 
+                                    type="button" 
+                                    on:click={getRandomImage} 
+                                    variant="outline"
+                                    class="bg-green-50 hover:bg-green-100 text-green-700 border-green-300"
+                                >
+                                    Random Image
+                                </Button>
+                                
                                 <Button 
                                     type="button" 
                                     on:click={() => searchImages()} 
@@ -540,8 +577,18 @@
                                     variant="outline"
                                     class="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300"
                                 >
-                                    {isSearching ? 'Searching...' : 'Search'}
+                                    {isSearching ? 'Loading...' : 'Browse Images'}
                                 </Button>
+                            </div>
+                            
+                            <div class="mt-2">
+                                <Input 
+                                    type="text" 
+                                    bind:value={searchQuery} 
+                                    placeholder="Filter by author or ID..." 
+                                    class="w-full"
+                                    on:keydown={(e) => e.key === 'Enter' && searchImages()}
+                                />
                             </div>
                         </div>
                     </div>
@@ -570,12 +617,15 @@
                                             </button>
                                         </div>
                                     </div>
+                                    <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 truncate">
+                                        By: {image.user.name}
+                                    </div>
                                 </div>
                             {/each}
                         </div>
                         
-                        {#if hasMoreResults}
-                            <div class="flex justify-center mt-4">
+                        <div class="flex justify-center mt-4">
+                            <div class="flex gap-2">
                                 <button 
                                     type="button"
                                     class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-md transition-colors text-sm"
@@ -584,8 +634,43 @@
                                 >
                                     {isSearching ? 'Loading...' : 'Load more images'}
                                 </button>
+                                
+                                <div class="flex items-center gap-2">
+                                    <button 
+                                        type="button"
+                                        class="px-3 py-2 bg-blue-100 hover:bg-blue-200 dark:bg-blue-800 dark:hover:bg-blue-700 rounded-md transition-colors text-sm"
+                                        on:click={() => {
+                                            const randomId = Math.floor(Math.random() * 1000);
+                                            selectImage(`https://picsum.photos/id/${randomId}/800/600`);
+                                        }}
+                                    >
+                                        Random
+                                    </button>
+                                    
+                                    <button 
+                                        type="button"
+                                        class="px-3 py-2 bg-purple-100 hover:bg-purple-200 dark:bg-purple-800 dark:hover:bg-purple-700 rounded-md transition-colors text-sm"
+                                        on:click={() => {
+                                            const randomId = Math.floor(Math.random() * 1000);
+                                            selectImage(`https://picsum.photos/id/${randomId}/800/600?grayscale`);
+                                        }}
+                                    >
+                                        Grayscale
+                                    </button>
+                                    
+                                    <button 
+                                        type="button"
+                                        class="px-3 py-2 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-800 dark:hover:bg-indigo-700 rounded-md transition-colors text-sm"
+                                        on:click={() => {
+                                            const randomId = Math.floor(Math.random() * 1000);
+                                            selectImage(`https://picsum.photos/id/${randomId}/800/600?blur=2`);
+                                        }}
+                                    >
+                                        Blur
+                                    </button>
+                                </div>
                             </div>
-                        {/if}
+                        </div>
                     </div>
                 {/if}
             </div>
