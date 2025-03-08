@@ -3,6 +3,7 @@
     import { Textarea } from "$lib/components/ui/textarea";
     import * as Form from "$lib/components/ui/form";
     import { Input } from "$lib/components/ui/input";
+    import { Button } from "$lib/components/ui/button";
     import { blogSchema, type BlogSchema } from "./schema";
     import {
         type SuperValidated,
@@ -23,6 +24,13 @@
 
     let renderedMarkdown = '';
     let imagePreview = '';
+    let activeTab = 'edit'; // 'edit' or 'preview'
+    let searchQuery = '';
+    let searchResults = [];
+    let isSearching = false;
+    let dragActive = false;
+    let unsplashPage = 1;
+    let hasMoreResults = false;
 
     $: {
         // Update rendered markdown when content changes
@@ -41,6 +49,186 @@
             gfm: true,
         });
     });
+
+    // Function to search for images on Unsplash
+    async function searchImages(loadMore = false) {
+        if (!searchQuery.trim() && !loadMore) return;
+        
+        if (!loadMore) {
+            unsplashPage = 1;
+            searchResults = [];
+        }
+        
+        isSearching = true;
+        try {
+            // Using Unsplash API (you'll need to register for an API key)
+            // For demo purposes, we're using a placeholder API endpoint
+            // In production, you should use your own Unsplash API key
+            const response = await fetch(`https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&page=${unsplashPage}&per_page=12`, {
+                headers: {
+                    'Authorization': 'Client-ID YOUR_UNSPLASH_API_KEY' // Replace with your API key
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (loadMore) {
+                    searchResults = [...searchResults, ...(data.results || [])];
+                } else {
+                    searchResults = data.results || [];
+                }
+                hasMoreResults = data.total_pages > unsplashPage;
+                unsplashPage++;
+            } else {
+                console.error('Failed to fetch images');
+                // For demo, show some placeholder results
+                const placeholders = Array(6).fill().map((_, i) => ({
+                    id: i + searchResults.length,
+                    urls: {
+                        small: `https://via.placeholder.com/300x200?text=Image+${i+1}`,
+                        regular: `https://via.placeholder.com/800x600?text=Image+${i+1}`
+                    },
+                    alt_description: `Placeholder image ${i+1}`,
+                    user: {
+                        name: "Placeholder User",
+                        links: { html: "#" }
+                    }
+                }));
+                
+                if (loadMore) {
+                    searchResults = [...searchResults, ...placeholders];
+                } else {
+                    searchResults = placeholders;
+                }
+                hasMoreResults = loadMore; // Only show "load more" once for placeholders
+            }
+        } catch (error) {
+            console.error('Error searching images:', error);
+            // Fallback to placeholders
+            const placeholders = Array(6).fill().map((_, i) => ({
+                id: i + searchResults.length,
+                urls: {
+                    small: `https://via.placeholder.com/300x200?text=Image+${i+1}`,
+                    regular: `https://via.placeholder.com/800x600?text=Image+${i+1}`
+                },
+                alt_description: `Placeholder image ${i+1}`,
+                user: {
+                    name: "Placeholder User",
+                    links: { html: "#" }
+                }
+            }));
+            
+            if (loadMore) {
+                searchResults = [...searchResults, ...placeholders];
+            } else {
+                searchResults = placeholders;
+            }
+            hasMoreResults = loadMore; // Only show "load more" once for placeholders
+        } finally {
+            isSearching = false;
+        }
+    }
+
+    function selectImage(imageUrl) {
+        $formData.imageUrl = imageUrl;
+    }
+
+    // Handle file drop
+    function handleDragOver(e) {
+        e.preventDefault();
+        dragActive = true;
+    }
+
+    function handleDragLeave() {
+        dragActive = false;
+    }
+
+    function handleDrop(e) {
+        e.preventDefault();
+        dragActive = false;
+        
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            const file = e.dataTransfer.files[0];
+            if (file.type.match('image.*')) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    $formData.imageUrl = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+    }
+
+    // Insert markdown for images
+    function insertImageMarkdown(imageUrl) {
+        const imageMarkdown = `![Image](${imageUrl})`;
+        const textarea = document.querySelector('textarea');
+        const cursorPos = textarea.selectionStart;
+        
+        $formData.content = 
+            $formData.content.substring(0, cursorPos) + 
+            imageMarkdown + 
+            $formData.content.substring(cursorPos);
+    }
+
+    // Handle paste from clipboard
+    async function handlePaste(e) {
+        const items = e.clipboardData?.items;
+        if (!items) return;
+
+        for (let i = 0; i < items.length; i++) {
+            if (items[i].type.indexOf('image') !== -1) {
+                e.preventDefault();
+                const blob = items[i].getAsFile();
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    $formData.imageUrl = event.target.result;
+                };
+                reader.readAsDataURL(blob);
+                break;
+            }
+        }
+    }
+
+    // Take screenshot from webcam
+    let stream = null;
+    let videoElement;
+    let isCameraActive = false;
+
+    async function toggleCamera() {
+        if (isCameraActive) {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            isCameraActive = false;
+            return;
+        }
+
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            if (videoElement) {
+                videoElement.srcObject = stream;
+                isCameraActive = true;
+            }
+        } catch (err) {
+            console.error("Error accessing camera:", err);
+            alert("Could not access camera. Please check permissions.");
+        }
+    }
+
+    function takePhoto() {
+        if (!videoElement || !isCameraActive) return;
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = videoElement.videoWidth;
+        canvas.height = videoElement.videoHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(videoElement, 0, 0);
+        
+        $formData.imageUrl = canvas.toDataURL('image/png');
+        toggleCamera(); // Turn off camera after taking photo
+    }
 </script>
 
 <div class="max-w-3xl mx-auto p-4">
