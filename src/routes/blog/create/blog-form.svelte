@@ -31,10 +31,42 @@
     let dragActive = false;
     let unsplashPage = 1;
     let hasMoreResults = false;
+    let imageWidth = 800;
+    let imageHeight = 600;
+    let wordCount = 0;
+    let charCount = 0;
+    let templates = [
+        { 
+            name: "Tutorial", 
+            title: "How to: [Your Topic]",
+            content: "## Introduction\n\nBriefly explain what this tutorial will cover and why it's useful.\n\n## Prerequisites\n\n- Requirement 1\n- Requirement 2\n\n## Step 1: Getting Started\n\nExplain the first step in detail.\n\n## Step 2: Main Process\n\nDescribe the core part of your tutorial.\n\n## Step 3: Finishing Up\n\nExplain the final steps.\n\n## Conclusion\n\nSummarize what the reader has learned."
+        },
+        { 
+            name: "Review", 
+            title: "Review: [Product/Service Name]",
+            content: "## Overview\n\nBrief introduction to what you're reviewing.\n\n## Pros\n\n- Advantage 1\n- Advantage 2\n- Advantage 3\n\n## Cons\n\n- Disadvantage 1\n- Disadvantage 2\n\n## Verdict\n\nYour final thoughts and recommendation."
+        },
+        { 
+            name: "News", 
+            title: "Breaking: [News Headline]",
+            content: "## What Happened\n\nDescribe the main news event.\n\n## Key Details\n\nProvide important information and context.\n\n## Why It Matters\n\nExplain the significance of this news.\n\n## What's Next\n\nDiscuss potential future developments."
+        }
+    ];
 
     $: {
         // Update rendered markdown when content changes
         renderedMarkdown = marked($formData.content);
+        
+        // Update word and character count
+        if ($formData.content) {
+            // Remove markdown syntax for more accurate counting
+            const plainText = $formData.content.replace(/\*\*|__|\*|_|`|#|>|\[.*?\]\(.*?\)|!\[.*?\]\(.*?\)|^\s*[-*+]\s+/gm, '');
+            wordCount = plainText.trim().split(/\s+/).filter(Boolean).length;
+            charCount = plainText.length;
+        } else {
+            wordCount = 0;
+            charCount = 0;
+        }
     }
 
     $: {
@@ -165,7 +197,15 @@
     // Function to get a random image
     function getRandomImage() {
         const randomSeed = Math.random().toString(36).substring(2, 8);
-        $formData.imageUrl = `https://picsum.photos/seed/${randomSeed}/800/600`;
+        $formData.imageUrl = `https://picsum.photos/seed/${randomSeed}/${imageWidth}/${imageHeight}`;
+    }
+    
+    // Function to apply a template
+    function applyTemplate(template) {
+        if (confirm("This will replace your current title and content. Continue?")) {
+            $formData.title = template.title;
+            $formData.content = template.content;
+        }
     }
 
     // Handle file drop
@@ -283,18 +323,46 @@
         </div>
         
         <div class="space-y-6">
-            <Form.Field {form} name="title">
-                <Form.Control let:attrs>
-                    <Form.Label class="text-lg font-medium">Title</Form.Label>
-                    <Input 
-                        {...attrs} 
-                        bind:value={$formData.title} 
-                        class="w-full text-lg border-2 focus:ring-2 focus:ring-blue-500 transition-all" 
-                        placeholder="Enter a catchy title" 
-                    />
-                </Form.Control>
-                <Form.FieldErrors class="text-red-500 mt-1" />
-            </Form.Field>
+            <div class="flex flex-col md:flex-row gap-4">
+                <Form.Field {form} name="title" class="flex-grow">
+                    <Form.Control let:attrs>
+                        <Form.Label class="text-lg font-medium">Title</Form.Label>
+                        <Input 
+                            {...attrs} 
+                            bind:value={$formData.title} 
+                            class="w-full text-lg border-2 focus:ring-2 focus:ring-blue-500 transition-all" 
+                            placeholder="Enter a catchy title" 
+                        />
+                    </Form.Control>
+                    <Form.FieldErrors class="text-red-500 mt-1" />
+                </Form.Field>
+                
+                <div class="w-full md:w-auto">
+                    <label class="text-lg font-medium block mb-2">Templates</label>
+                    <div class="relative">
+                        <select 
+                            class="w-full md:w-48 h-10 pl-3 pr-8 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onChange={(e) => {
+                                const selectedIndex = e.target.selectedIndex;
+                                if (selectedIndex > 0) {
+                                    applyTemplate(templates[selectedIndex - 1]);
+                                    e.target.selectedIndex = 0;
+                                }
+                            }}
+                        >
+                            <option value="">Select template</option>
+                            {#each templates as template}
+                                <option value={template.name}>{template.name}</option>
+                            {/each}
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Tabs for Edit/Preview -->
             <div class="border-b-2 border-gray-200 dark:border-gray-700">
@@ -339,110 +407,197 @@
                                 class="w-full resize-y min-h-[250px] border-2 focus:ring-2 focus:ring-blue-500 transition-all" 
                                 placeholder="Write your blog post content using Markdown..." 
                             />
-                            <div class="absolute bottom-3 right-3 flex flex-wrap gap-2 bg-white dark:bg-gray-700 p-1 rounded-lg shadow-md">
-                                <button 
-                                    type="button" 
-                                    class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm font-bold transition-colors"
-                                    title="Insert bold text"
-                                    on:click={() => {
-                                        const textarea = document.querySelector('textarea');
-                                        const cursorPos = textarea.selectionStart;
-                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-                                        const replacement = selectedText ? `**${selectedText}**` : '**bold text**';
-                                        $formData.content = 
-                                            $formData.content.substring(0, textarea.selectionStart) + 
-                                            replacement + 
-                                            $formData.content.substring(textarea.selectionEnd);
-                                    }}
-                                >
-                                    B
-                                </button>
-                                <button 
-                                    type="button" 
-                                    class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm italic transition-colors"
-                                    title="Insert italic text"
-                                    on:click={() => {
-                                        const textarea = document.querySelector('textarea');
-                                        const cursorPos = textarea.selectionStart;
-                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-                                        const replacement = selectedText ? `*${selectedText}*` : '*italic text*';
-                                        $formData.content = 
-                                            $formData.content.substring(0, textarea.selectionStart) + 
-                                            replacement + 
-                                            $formData.content.substring(textarea.selectionEnd);
-                                    }}
-                                >
-                                    I
-                                </button>
-                                <button 
-                                    type="button" 
-                                    class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm transition-colors"
-                                    title="Insert heading"
-                                    on:click={() => {
-                                        const textarea = document.querySelector('textarea');
-                                        const cursorPos = textarea.selectionStart;
-                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-                                        const replacement = selectedText ? `## ${selectedText}` : '## Heading';
-                                        $formData.content = 
-                                            $formData.content.substring(0, textarea.selectionStart) + 
-                                            replacement + 
-                                            $formData.content.substring(textarea.selectionEnd);
-                                    }}
-                                >
-                                    H
-                                </button>
-                                <button 
-                                    type="button" 
-                                    class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm transition-colors"
-                                    title="Insert link"
-                                    on:click={() => {
-                                        const textarea = document.querySelector('textarea');
-                                        const cursorPos = textarea.selectionStart;
-                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-                                        const replacement = selectedText ? `[${selectedText}](url)` : '[link text](url)';
-                                        $formData.content = 
-                                            $formData.content.substring(0, textarea.selectionStart) + 
-                                            replacement + 
-                                            $formData.content.substring(textarea.selectionEnd);
-                                    }}
-                                >
-                                    🔗
-                                </button>
-                                <button 
-                                    type="button" 
-                                    class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm transition-colors"
-                                    title="Insert list"
-                                    on:click={() => {
-                                        const textarea = document.querySelector('textarea');
-                                        const cursorPos = textarea.selectionStart;
-                                        const replacement = "\n- List item 1\n- List item 2\n- List item 3\n";
-                                        $formData.content = 
-                                            $formData.content.substring(0, cursorPos) + 
-                                            replacement + 
-                                            $formData.content.substring(cursorPos);
-                                    }}
-                                >
-                                    •
-                                </button>
-                                <button 
-                                    type="button" 
-                                    class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm transition-colors"
-                                    title="Insert code block"
-                                    on:click={() => {
-                                        const textarea = document.querySelector('textarea');
-                                        const cursorPos = textarea.selectionStart;
-                                        const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-                                        const replacement = selectedText ? 
-                                            "```\n" + selectedText + "\n```" : 
-                                            "```\ncode block\n```";
-                                        $formData.content = 
-                                            $formData.content.substring(0, textarea.selectionStart) + 
-                                            replacement + 
-                                            $formData.content.substring(textarea.selectionEnd);
-                                    }}
-                                >
-                                    &lt;/&gt;
-                                </button>
+                            <div class="absolute bottom-3 right-3 flex flex-wrap gap-2 bg-white dark:bg-gray-700 p-2 rounded-lg shadow-md">
+                                <div class="flex gap-1">
+                                    <button 
+                                        type="button" 
+                                        class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm font-bold transition-colors"
+                                        title="Insert bold text"
+                                        on:click={() => {
+                                            const textarea = document.querySelector('textarea');
+                                            const cursorPos = textarea.selectionStart;
+                                            const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                            const replacement = selectedText ? `**${selectedText}**` : '**bold text**';
+                                            $formData.content = 
+                                                $formData.content.substring(0, textarea.selectionStart) + 
+                                                replacement + 
+                                                $formData.content.substring(textarea.selectionEnd);
+                                        }}
+                                    >
+                                        B
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm italic transition-colors"
+                                        title="Insert italic text"
+                                        on:click={() => {
+                                            const textarea = document.querySelector('textarea');
+                                            const cursorPos = textarea.selectionStart;
+                                            const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                            const replacement = selectedText ? `*${selectedText}*` : '*italic text*';
+                                            $formData.content = 
+                                                $formData.content.substring(0, textarea.selectionStart) + 
+                                                replacement + 
+                                                $formData.content.substring(textarea.selectionEnd);
+                                        }}
+                                    >
+                                        I
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm transition-colors"
+                                        title="Insert strikethrough"
+                                        on:click={() => {
+                                            const textarea = document.querySelector('textarea');
+                                            const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                            const replacement = selectedText ? `~~${selectedText}~~` : '~~strikethrough~~';
+                                            $formData.content = 
+                                                $formData.content.substring(0, textarea.selectionStart) + 
+                                                replacement + 
+                                                $formData.content.substring(textarea.selectionEnd);
+                                        }}
+                                    >
+                                        S
+                                    </button>
+                                </div>
+                                
+                                <div class="flex gap-1">
+                                    <button 
+                                        type="button" 
+                                        class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm transition-colors"
+                                        title="Insert H1 heading"
+                                        on:click={() => {
+                                            const textarea = document.querySelector('textarea');
+                                            const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                            const replacement = selectedText ? `# ${selectedText}` : '# Heading 1';
+                                            $formData.content = 
+                                                $formData.content.substring(0, textarea.selectionStart) + 
+                                                replacement + 
+                                                $formData.content.substring(textarea.selectionEnd);
+                                        }}
+                                    >
+                                        H1
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm transition-colors"
+                                        title="Insert H2 heading"
+                                        on:click={() => {
+                                            const textarea = document.querySelector('textarea');
+                                            const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                            const replacement = selectedText ? `## ${selectedText}` : '## Heading 2';
+                                            $formData.content = 
+                                                $formData.content.substring(0, textarea.selectionStart) + 
+                                                replacement + 
+                                                $formData.content.substring(textarea.selectionEnd);
+                                        }}
+                                    >
+                                        H2
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm transition-colors"
+                                        title="Insert H3 heading"
+                                        on:click={() => {
+                                            const textarea = document.querySelector('textarea');
+                                            const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                            const replacement = selectedText ? `### ${selectedText}` : '### Heading 3';
+                                            $formData.content = 
+                                                $formData.content.substring(0, textarea.selectionStart) + 
+                                                replacement + 
+                                                $formData.content.substring(textarea.selectionEnd);
+                                        }}
+                                    >
+                                        H3
+                                    </button>
+                                </div>
+                                
+                                <div class="flex gap-1">
+                                    <button 
+                                        type="button" 
+                                        class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm transition-colors"
+                                        title="Insert link"
+                                        on:click={() => {
+                                            const textarea = document.querySelector('textarea');
+                                            const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                            const replacement = selectedText ? `[${selectedText}](url)` : '[link text](url)';
+                                            $formData.content = 
+                                                $formData.content.substring(0, textarea.selectionStart) + 
+                                                replacement + 
+                                                $formData.content.substring(textarea.selectionEnd);
+                                        }}
+                                    >
+                                        🔗
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm transition-colors"
+                                        title="Insert bullet list"
+                                        on:click={() => {
+                                            const textarea = document.querySelector('textarea');
+                                            const replacement = "\n- List item 1\n- List item 2\n- List item 3\n";
+                                            $formData.content = 
+                                                $formData.content.substring(0, textarea.selectionStart) + 
+                                                replacement + 
+                                                $formData.content.substring(textarea.selectionEnd);
+                                        }}
+                                    >
+                                        •
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm transition-colors"
+                                        title="Insert numbered list"
+                                        on:click={() => {
+                                            const textarea = document.querySelector('textarea');
+                                            const replacement = "\n1. First item\n2. Second item\n3. Third item\n";
+                                            $formData.content = 
+                                                $formData.content.substring(0, textarea.selectionStart) + 
+                                                replacement + 
+                                                $formData.content.substring(textarea.selectionEnd);
+                                        }}
+                                    >
+                                        1.
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm transition-colors"
+                                        title="Insert blockquote"
+                                        on:click={() => {
+                                            const textarea = document.querySelector('textarea');
+                                            const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                            const replacement = selectedText ? `> ${selectedText}` : '> Blockquote text';
+                                            $formData.content = 
+                                                $formData.content.substring(0, textarea.selectionStart) + 
+                                                replacement + 
+                                                $formData.content.substring(textarea.selectionEnd);
+                                        }}
+                                    >
+                                        "
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        class="p-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 rounded text-sm transition-colors"
+                                        title="Insert code block"
+                                        on:click={() => {
+                                            const textarea = document.querySelector('textarea');
+                                            const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+                                            const replacement = selectedText ? 
+                                                "```\n" + selectedText + "\n```" : 
+                                                "```\ncode block\n```";
+                                            $formData.content = 
+                                                $formData.content.substring(0, textarea.selectionStart) + 
+                                                replacement + 
+                                                $formData.content.substring(textarea.selectionEnd);
+                                        }}
+                                    >
+                                        &lt;/&gt;
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="absolute bottom-3 left-3 text-xs text-gray-500">
+                                {wordCount} words | {charCount} characters
                             </div>
                         </div>
                     </Form.Control>
@@ -560,6 +715,39 @@
                                 </svg>
                                 Find Images
                             </h4>
+                            
+                            <!-- Image size controls -->
+                            <div class="mb-3 grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-xs text-gray-500 mb-1 block">Width</label>
+                                    <div class="flex items-center">
+                                        <input 
+                                            type="range" 
+                                            min="400" 
+                                            max="1200" 
+                                            step="50" 
+                                            bind:value={imageWidth}
+                                            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                        />
+                                        <span class="ml-2 text-xs w-10">{imageWidth}px</span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="text-xs text-gray-500 mb-1 block">Height</label>
+                                    <div class="flex items-center">
+                                        <input 
+                                            type="range" 
+                                            min="300" 
+                                            max="900" 
+                                            step="50" 
+                                            bind:value={imageHeight}
+                                            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                        />
+                                        <span class="ml-2 text-xs w-10">{imageHeight}px</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="flex flex-wrap gap-2">
                                 <Button 
                                     type="button" 
