@@ -35,6 +35,11 @@
     let imageHeight = 600;
     let wordCount = 0;
     let charCount = 0;
+    let isGeneratingContent = false;
+    let aiPrompt = '';
+    let lastSaved = null;
+    let autoSaveInterval;
+    let seoScore = { score: 0, suggestions: [] };
     let templates = [
         { 
             name: "Tutorial", 
@@ -80,7 +85,121 @@
             breaks: true,
             gfm: true,
         });
+        
+        // Set up auto-save
+        autoSaveInterval = setInterval(() => {
+            if ($formData.title || $formData.content) {
+                saveToLocalStorage();
+            }
+        }, 30000); // Auto-save every 30 seconds
+        
+        // Try to load from localStorage
+        loadFromLocalStorage();
+        
+        // Check SEO on content changes
+        checkSEO();
+        
+        return () => {
+            if (autoSaveInterval) clearInterval(autoSaveInterval);
+        };
     });
+    
+    function saveToLocalStorage() {
+        try {
+            localStorage.setItem('blog_draft', JSON.stringify({
+                title: $formData.title,
+                content: $formData.content,
+                imageUrl: $formData.imageUrl,
+                timestamp: new Date().toISOString()
+            }));
+            lastSaved = new Date();
+        } catch (e) {
+            console.error('Failed to save draft:', e);
+        }
+    }
+    
+    function loadFromLocalStorage() {
+        try {
+            const saved = localStorage.getItem('blog_draft');
+            if (saved) {
+                const draft = JSON.parse(saved);
+                if (!$formData.title && !$formData.content) {
+                    $formData.title = draft.title || '';
+                    $formData.content = draft.content || '';
+                    $formData.imageUrl = draft.imageUrl || '';
+                    lastSaved = new Date(draft.timestamp);
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load draft:', e);
+        }
+    }
+    
+    function clearDraft() {
+        if (confirm('Are you sure you want to clear your saved draft?')) {
+            localStorage.removeItem('blog_draft');
+            lastSaved = null;
+        }
+    }
+    
+    function checkSEO() {
+        if (!$formData.title && !$formData.content) return;
+        
+        const suggestions = [];
+        let score = 0;
+        
+        // Title checks
+        if ($formData.title) {
+            if ($formData.title.length < 10) {
+                suggestions.push('Title is too short (aim for 50-60 characters)');
+            } else if ($formData.title.length > 70) {
+                suggestions.push('Title is too long (keep under 70 characters)');
+            } else {
+                score += 25;
+            }
+        } else {
+            suggestions.push('Add a title to your post');
+        }
+        
+        // Content checks
+        if ($formData.content) {
+            if (wordCount < 300) {
+                suggestions.push('Content is too short (aim for at least 300 words)');
+            } else {
+                score += 25;
+            }
+            
+            // Check for headings
+            if (!$formData.content.includes('#')) {
+                suggestions.push('Add headings to structure your content');
+            } else {
+                score += 15;
+            }
+            
+            // Check for links
+            if (!$formData.content.includes('](')) {
+                suggestions.push('Add links to enhance your content');
+            } else {
+                score += 15;
+            }
+        } else {
+            suggestions.push('Add content to your post');
+        }
+        
+        // Image check
+        if (!$formData.imageUrl) {
+            suggestions.push('Add a featured image to improve engagement');
+        } else {
+            score += 20;
+        }
+        
+        seoScore = { score, suggestions };
+    }
+    
+    // Watch for content changes to update SEO
+    $: if ($formData.title || $formData.content) {
+        checkSEO();
+    }
 
     // Function to search for images using Lorem Picsum
     async function searchImages(loadMore = false) {
@@ -205,7 +324,70 @@
         if (confirm("This will replace your current title and content. Continue?")) {
             $formData.title = template.title;
             $formData.content = template.content;
+            saveToLocalStorage();
         }
+    }
+    
+    // Function to generate content with AI
+    async function generateContent() {
+        if (!aiPrompt.trim()) {
+            alert("Please enter a prompt for the AI");
+            return;
+        }
+        
+        isGeneratingContent = true;
+        
+        try {
+            // This is a mock implementation - in a real app, you would call an API
+            // like OpenAI, Anthropic, or your own backend service
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+            
+            // Generate mock content based on the prompt
+            const generatedContent = generateMockContent(aiPrompt);
+            
+            // Insert at cursor position or append
+            const textarea = document.querySelector('textarea');
+            if (textarea) {
+                const cursorPos = textarea.selectionStart;
+                $formData.content = 
+                    $formData.content.substring(0, cursorPos) + 
+                    generatedContent + 
+                    $formData.content.substring(cursorPos);
+            } else {
+                $formData.content += generatedContent;
+            }
+            
+            aiPrompt = '';
+            saveToLocalStorage();
+            
+        } catch (error) {
+            console.error('Error generating content:', error);
+            alert('Failed to generate content. Please try again.');
+        } finally {
+            isGeneratingContent = false;
+        }
+    }
+    
+    // Mock content generation (replace with actual AI API in production)
+    function generateMockContent(prompt) {
+        const topics = {
+            'introduction': '## Introduction\n\nWelcome to this article about ' + prompt + '. In the following sections, we will explore the key aspects and provide valuable insights on this topic.\n\n',
+            'benefits': '## Benefits of ' + prompt + '\n\n- Improved efficiency and productivity\n- Enhanced user experience\n- Cost-effective solution\n- Scalable for future growth\n\n',
+            'tutorial': '## How to Get Started with ' + prompt + '\n\n1. First, understand the basic concepts\n2. Set up your environment\n3. Follow best practices\n4. Test and iterate your approach\n\n',
+            'conclusion': '## Conclusion\n\nIn summary, ' + prompt + ' offers significant advantages for those willing to invest the time to learn and implement it properly. The key takeaways from this article should help you get started on your journey.\n\n'
+        };
+        
+        // Select a random section type or use a specific one based on the prompt
+        let sectionType = 'introduction';
+        if (prompt.toLowerCase().includes('benefit') || prompt.toLowerCase().includes('advantage')) {
+            sectionType = 'benefits';
+        } else if (prompt.toLowerCase().includes('how') || prompt.toLowerCase().includes('tutorial')) {
+            sectionType = 'tutorial';
+        } else if (prompt.toLowerCase().includes('conclusion') || prompt.toLowerCase().includes('summary')) {
+            sectionType = 'conclusion';
+        }
+        
+        return topics[sectionType];
     }
 
     // Handle file drop
@@ -362,6 +544,53 @@
                         </div>
                     </div>
                 </div>
+            </div>
+            
+            <!-- Auto-save indicator -->
+            {#if lastSaved}
+                <div class="flex justify-between items-center text-xs text-gray-500">
+                    <div class="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Draft auto-saved at {lastSaved.toLocaleTimeString()}
+                    </div>
+                    <button 
+                        type="button" 
+                        class="text-red-500 hover:text-red-700"
+                        on:click={clearDraft}
+                    >
+                        Clear saved draft
+                    </button>
+                </div>
+            {/if}
+            
+            <!-- SEO Score -->
+            <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg border">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-medium">SEO Score: {seoScore.score}/100</h3>
+                    <div class="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                            class="h-full rounded-full" 
+                            style="width: {seoScore.score}%; background-color: {
+                                seoScore.score < 40 ? '#ef4444' : 
+                                seoScore.score < 70 ? '#f59e0b' : 
+                                '#10b981'
+                            };"
+                        ></div>
+                    </div>
+                </div>
+                
+                {#if seoScore.suggestions.length > 0}
+                    <div class="text-sm">
+                        <p class="font-medium mb-1">Suggestions to improve:</p>
+                        <ul class="list-disc pl-5 space-y-1 text-gray-600 dark:text-gray-400">
+                            {#each seoScore.suggestions as suggestion}
+                                <li>{suggestion}</li>
+                            {/each}
+                        </ul>
+                    </div>
+                {/if}
             </div>
 
             <!-- Tabs for Edit/Preview -->
@@ -598,6 +827,20 @@
                             
                             <div class="absolute bottom-3 left-3 text-xs text-gray-500">
                                 {wordCount} words | {charCount} characters
+                            </div>
+                            
+                            <!-- AI Content Generation -->
+                            <div class="absolute top-3 right-3">
+                                <button 
+                                    type="button"
+                                    class="flex items-center px-3 py-1.5 bg-purple-100 hover:bg-purple-200 dark:bg-purple-800 dark:hover:bg-purple-700 text-purple-800 dark:text-purple-200 rounded-md transition-colors text-sm font-medium"
+                                    on:click={() => document.getElementById('aiPromptDialog').showModal()}
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                    AI Assist
+                                </button>
                             </div>
                         </div>
                     </Form.Control>
@@ -864,12 +1107,22 @@
             </div>
 
             <div class="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-                <Form.Button 
-                    disabled={$submitting}
-                    class="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-8 rounded-md transition-all transform hover:scale-105 font-medium text-lg shadow-md"
-                >
-                    {$submitting ? 'Creating Post...' : 'Create Post'}
-                </Form.Button>
+                <div class="flex gap-2">
+                    <Form.Button 
+                        disabled={$submitting}
+                        class="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-8 rounded-md transition-all transform hover:scale-105 font-medium text-lg shadow-md"
+                    >
+                        {$submitting ? 'Creating Post...' : 'Create Post'}
+                    </Form.Button>
+                    
+                    <button
+                        type="button"
+                        class="py-3 px-4 border-2 border-gray-300 hover:border-gray-400 text-gray-700 dark:text-gray-300 rounded-md transition-colors"
+                        on:click={() => saveToLocalStorage()}
+                    >
+                        Save Draft
+                    </button>
+                </div>
                 
                 {#if $submitting}
                     <div class="text-blue-600 flex items-center justify-center">
@@ -883,4 +1136,50 @@
             </div>
         </div>
     </form>
+    
+    <!-- AI Content Generation Dialog -->
+    <dialog id="aiPromptDialog" class="p-0 rounded-lg shadow-xl backdrop:bg-black backdrop:bg-opacity-50">
+        <div class="w-full max-w-md bg-white dark:bg-gray-800 p-6 rounded-lg">
+            <h3 class="text-lg font-bold mb-4">AI Content Assistant</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Describe what you want the AI to write about, and it will generate content for your blog post.
+            </p>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-1">Your prompt</label>
+                <textarea 
+                    bind:value={aiPrompt}
+                    class="w-full p-2 border-2 border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows="3"
+                    placeholder="e.g., Write an introduction about machine learning"
+                ></textarea>
+            </div>
+            
+            <div class="flex justify-end gap-2">
+                <button 
+                    type="button"
+                    class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md"
+                    on:click={() => document.getElementById('aiPromptDialog').close()}
+                >
+                    Cancel
+                </button>
+                <button 
+                    type="button"
+                    class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-md flex items-center"
+                    on:click={generateContent}
+                    disabled={isGeneratingContent || !aiPrompt.trim()}
+                >
+                    {#if isGeneratingContent}
+                        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Generating...
+                    {:else}
+                        Generate Content
+                    {/if}
+                </button>
+            </div>
+        </div>
+    </dialog>
 </div>
