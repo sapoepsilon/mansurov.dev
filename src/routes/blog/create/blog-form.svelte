@@ -1181,5 +1181,4 @@
                 </button>
             </div>
         </div>
-    </dialog>
-</div>
+    </dialog></div>
