@@ -46,7 +46,7 @@
 		"ical-generator": "^8.0.0",
 		"isomorphic-dompurify": "^2.14.0",
 		"lucide-svelte": "^0.416.0",
-		"marked": "^13.0.2",
+		"marked": "^13.0.3",
 		"nodemailer": "^6.9.15",
 		"sveltekit-superforms": "^2.16.1",
 		"tailwind-merge": "^2.4.0",

@@ -45,7 +45,7 @@ export const POST: RequestHandler = async ({ request }) => {
             from: email,
             to: USER_EMAIL,
             subject: `Contact Form Submission from ${name}`,
-            text: message,
+            text: `From: ${name} <${email}>\n\n${message}`,
         };
 
         // Send email
