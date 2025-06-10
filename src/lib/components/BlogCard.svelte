@@ -14,8 +14,8 @@
 	}
 </script>
 
-<a href="/blog/{id}" class="block w-full">
-	<Card.Root class="flex flex-col sm:flex-row md:flex-row bg-card text-card-foreground w-full">
+<a href="/blog/{id}" class="block w-full group">
+	<Card.Root class="flex flex-col sm:flex-row md:flex-row glass-card glass-layers text-card-foreground w-full liquid-morph hover:scale-[1.02] transition-all duration-300 glass-refract">
 		<div class="w-full sm:w-1/4 aspect-video sm:aspect-square overflow-hidden">
 			<img src={imageUrl} alt="" class="w-full h-full object-cover" />
 		</div>
@@ -27,7 +27,7 @@
 				</Card.Description>
 			</div>
 			<Card.Footer class="pt-4">
-				<Button variant="outline" class="w-24">Read</Button>
+				<Button variant="outline" class="w-24 glass-button glass-layers glass-refract group-hover:glass-button">Read</Button>
 			</Card.Footer>
 		</div>
 	</Card.Root>
