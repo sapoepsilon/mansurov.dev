@@ -5,7 +5,6 @@
 	import { cn } from "$lib/utils";
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import DarkModeToggle from './DarkMode.svelte';
 	import logoLight from '$lib/assets/logo.png';
 	import logoDark from '$lib/assets/logo_dark.png';
 	import { onMount } from 'svelte';
@@ -183,7 +182,6 @@
 					</a>
 				{/each}
 			</div>
-			<DarkModeToggle />
 		</div>
 	</div>
 </Menubar.Root>

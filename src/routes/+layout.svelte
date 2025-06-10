@@ -4,6 +4,14 @@
     import MouseTracker from '$lib/components/MouseTracker.svelte';
     import WebGPUReflection from '$lib/components/WebGPUReflection.svelte';
     import { page } from '$app/stores';
+    import { onMount } from 'svelte';
+    
+    // Force dark mode permanently
+    onMount(() => {
+        if (typeof document !== 'undefined') {
+            document.documentElement.classList.add('dark');
+        }
+    });
 </script>
 
 <div class="min-h-screen relative">
