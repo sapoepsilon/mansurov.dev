@@ -50,6 +50,8 @@
     });
 </script>
 
-<Sun class="w-5 h-5 transition-transform duration-300 rotate-0" />
-<Switch on:click={toggleDarkMode} checked={$darkMode}/>
-<Moon class="w-5 h-5 transition-transform duration-300 -rotate-90" />
+<div class="flex items-center gap-3 glass-button glass-layers px-4 py-2 rounded-full">
+    <Sun class="w-5 h-5 transition-all duration-300 {$darkMode ? 'opacity-50 scale-75' : 'opacity-100 scale-100'}" />
+    <Switch on:click={toggleDarkMode} checked={$darkMode} class="data-[state=checked]:bg-primary/50 data-[state=unchecked]:bg-secondary/50 backdrop-blur-xl"/>
+    <Moon class="w-5 h-5 transition-all duration-300 {$darkMode ? 'opacity-100 scale-100' : 'opacity-50 scale-75'}" />
+</div>

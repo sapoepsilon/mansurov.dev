@@ -5,10 +5,25 @@
 	import { cn } from "$lib/utils";
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import DarkModeToggle from './DarkMode.svelte';
 	import logoLight from '$lib/assets/logo.png';
 	import logoDark from '$lib/assets/logo_dark.png';
+	import { onMount } from 'svelte';
+	
 	$: currentPath = $page.url.pathname;
+	
+	let scrollY = 0;
+	let navElement: HTMLElement;
+	let isScrolled = false;
+	
+	onMount(() => {
+		const handleScroll = () => {
+			scrollY = window.scrollY;
+			isScrolled = scrollY > 20;
+		};
+		
+		window.addEventListener('scroll', handleScroll);
+		return () => window.removeEventListener('scroll', handleScroll);
+	});
 
 	const menuItems = [
 		{ name: "About", path: "/about" },
@@ -105,19 +120,26 @@
 	}
 </style>
 
-<Menubar.Root class="flex items-center h-[64px] px-2 lg:px-4 bg-background w-full">
+<Menubar.Root 
+	bind:this={navElement}
+	class={cn(
+		"flex items-center px-2 lg:px-4 w-full glass-nav glass-layers sticky top-0 z-50 liquid-morph transition-all duration-500",
+		isScrolled ? "h-[56px] shadow-lg" : "h-[64px]"
+	)}>
 	<div class="nav-container">
 		<div class="menu-container">
 			<div class="sm:hidden">
 				<DropdownMenu.Root>
-					<DropdownMenu.Trigger><Menu size={20} /></DropdownMenu.Trigger>
-					<DropdownMenu.Content>
+					<DropdownMenu.Trigger class="glass-button glass-layers p-2 glass-refract">
+						<Menu size={20} />
+					</DropdownMenu.Trigger>
+					<DropdownMenu.Content class="glass-modal mt-2">
 						{#each menuItems as item}
 							<DropdownMenu.Item
 									on:click={() => goto(item.path)}
 									class={cn(
-							"text-sm font-medium transition-colors",
-							currentPath === item.path ? "text-green-500 bg-green-100 dark:bg-green-900" : ""
+							"text-sm font-medium transition-colors liquid-morph glass-refract",
+							currentPath === item.path ? "text-green-500 glass-button" : "hover:glass-button"
 						)}
 							>
 								{item.name}
@@ -152,15 +174,14 @@
 							href={item.path}
 							on:click|preventDefault={() => goto(item.path)}
 							class={cn(
-							"text-sm font-medium hover:text-green-500 transition-colors",
-							currentPath === item.path ? "text-green-500" : "text-white-700"
+							"text-sm font-medium hover:text-green-500 transition-colors px-3 py-1.5 rounded-lg liquid-morph glass-refract glass-layers",
+							currentPath === item.path ? "text-green-500 glass-button" : "text-white-700 hover:glass-button"
 						)}
 					>
 						{item.name}
 					</a>
 				{/each}
 			</div>
-			<DarkModeToggle />
 		</div>
 	</div>
 </Menubar.Root>
