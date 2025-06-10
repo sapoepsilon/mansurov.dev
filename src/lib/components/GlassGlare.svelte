@@ -11,6 +11,8 @@
   let context: GPUCanvasContext | null = null;
   let renderPipeline: GPURenderPipeline | null = null;
   let animationId: number;
+  let lastTime = 0;
+  let isActive = false;
 
   const getCornerPosition = (corner: string) => {
     switch (corner) {
@@ -52,9 +54,8 @@
       // Create radial gradient from corner
       let glare = 1.0 - smoothstep(0.0, 0.7, dist);
       
-      // Add some sparkle effect
-      let time = ${Date.now() * 0.002};
-      let sparkle = sin(dist * 20.0 + time) * 0.1 + 0.9;
+      // Add subtle animated sparkle effect
+      let sparkle = 0.95 + 0.05 * sin(dist * 15.0);
       glare *= sparkle;
       
       // Fresnel-like edge enhancement
@@ -132,39 +133,58 @@
     }
   }
 
-  function render() {
-    if (!device || !context || !renderPipeline) return;
-
-    const commandEncoder = device.createCommandEncoder();
-    const textureView = context.getCurrentTexture().createView();
-
-    const renderPass = commandEncoder.beginRenderPass({
-      colorAttachments: [{
-        view: textureView,
-        clearValue: { r: 0, g: 0, b: 0, a: 0 },
-        loadOp: 'clear',
-        storeOp: 'store'
-      }]
-    });
-
-    renderPass.setPipeline(renderPipeline);
-    renderPass.draw(6);
-    renderPass.end();
-
-    device.queue.submit([commandEncoder.finish()]);
+  function render(currentTime?: number) {
+    if (!device || !context || !renderPipeline || !isActive) return;
     
-    animationId = requestAnimationFrame(render);
+    // Only update on hover for performance
+    try {
+      const commandEncoder = device.createCommandEncoder();
+      const textureView = context.getCurrentTexture().createView();
+
+      const renderPass = commandEncoder.beginRenderPass({
+        colorAttachments: [{
+          view: textureView,
+          clearValue: { r: 0, g: 0, b: 0, a: 0 },
+          loadOp: 'clear',
+          storeOp: 'store'
+        }]
+      });
+
+      renderPass.setPipeline(renderPipeline);
+      renderPass.draw(6);
+      renderPass.end();
+
+      device.queue.submit([commandEncoder.finish()]);
+    } catch (error) {
+      console.warn('GlassGlare render error:', error);
+    }
   }
 
   onMount(async () => {
     if (await initWebGPU()) {
+      // Only render once initially
       render();
+      
+      // Add hover listeners to parent element for activation
+      const parent = canvas?.parentElement;
+      if (parent) {
+        parent.addEventListener('mouseenter', () => {
+          isActive = true;
+          render();
+        });
+        parent.addEventListener('mouseleave', () => {
+          isActive = false;
+        });
+      }
     }
   });
 
   onDestroy(() => {
     if (animationId) {
       cancelAnimationFrame(animationId);
+    }
+    if (device) {
+      device.destroy();
     }
   });
 

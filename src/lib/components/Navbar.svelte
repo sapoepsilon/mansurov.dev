@@ -174,7 +174,7 @@
 							href={item.path}
 							on:click|preventDefault={() => goto(item.path)}
 							class={cn(
-							"text-sm font-medium hover:text-green-500 transition-colors px-3 py-1.5 rounded-lg liquid-morph glass-refract glass-layers",
+							"text-sm font-medium hover:text-green-500 transition-colors px-3 py-1.5 rounded-lg liquid-morph glass-refract glass-layers glass-prism",
 							currentPath === item.path ? "text-green-500 glass-button" : "text-white-700 hover:glass-button"
 						)}
 					>
