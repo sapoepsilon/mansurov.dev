@@ -165,7 +165,7 @@
 			</a>
 		</div>
 
-		<div class="bismillah">﷽</div>
+		<div class="bismillah">𐰺𐰆𐰴𐰃𐰢𐰤𐰃 𐰘𐰤𐰏𐰢𐰾 𐰴𐰆𐰲𐰃</div>
 
 		<div class="right-section">
 			<div class="hidden sm:flex items-center gap-4">
