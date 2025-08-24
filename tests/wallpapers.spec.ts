@@ -9,7 +9,7 @@ test.describe('Wallpapers Page', () => {
 		await expect(page.getByText('Curated collections of beautiful wallpapers')).toBeVisible();
 	});
 
-	test('should display wallpaper packs with device frames', async ({ page }) => {
+	test('should display wallpaper packs with preview images', async ({ page }) => {
 		await page.goto('http://localhost:5173/wallpapers');
 		
 		// Verify pack titles are displayed
@@ -18,9 +18,9 @@ test.describe('Wallpapers Page', () => {
 		await expect(page.getByRole('heading', { name: 'Abstract Geometry' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Forest Canopy' })).toBeVisible();
 		
-		// Verify device frames are present
-		await expect(page.locator('.macbook-frame')).toBeVisible();
-		await expect(page.locator('.iphone-frame')).toBeVisible();
+		// Verify preview images are present
+		await expect(page.getByText('Desktop')).toBeVisible();
+		await expect(page.getByText('Mobile')).toBeVisible();
 	});
 
 	test('should display tags and themes for wallpaper packs', async ({ page }) => {
@@ -47,18 +47,19 @@ test.describe('Wallpapers Page', () => {
 		await expect(page.locator('h1')).toContainText('Wallpapers');
 		await expect(page.getByRole('heading', { name: 'Mountain Serenity' })).toBeVisible();
 		
-		// On mobile, only iPhone frames should be visible (MacBook should be hidden)
-		await expect(page.locator('.iphone-frame')).toBeVisible();
+		// Verify preview images are visible on mobile
+		await expect(page.getByText('Desktop')).toBeVisible();
+		await expect(page.getByText('Mobile')).toBeVisible();
 	});
 
-	test('should show both device frames on desktop', async ({ page }) => {
+	test('should show preview images on desktop', async ({ page }) => {
 		// Test desktop viewport
 		await page.setViewportSize({ width: 1280, height: 720 });
 		await page.goto('http://localhost:5173/wallpapers');
 		
-		// Both iPhone and MacBook frames should be visible on desktop
-		await expect(page.locator('.macbook-frame')).toBeVisible();
-		await expect(page.locator('.iphone-frame')).toBeVisible();
+		// Both desktop and mobile previews should be visible
+		await expect(page.getByText('Desktop')).toBeVisible();
+		await expect(page.getByText('Mobile')).toBeVisible();
 	});
 
 	test('should have working navbar navigation to wallpapers', async ({ page }) => {
@@ -72,12 +73,12 @@ test.describe('Wallpapers Page', () => {
 		await expect(page.locator('h1')).toContainText('Wallpapers');
 	});
 
-	test('should display wallpaper images in device frames', async ({ page }) => {
+	test('should display wallpaper preview images', async ({ page }) => {
 		await page.goto('http://localhost:5173/wallpapers');
 		
-		// Verify images load in device frames
-		await expect(page.locator('.macbook-frame img')).toBeVisible();
-		await expect(page.locator('.iphone-frame img')).toBeVisible();
+		// Verify preview images are visible
+		await expect(page.locator('img[alt*="desktop wallpaper"]')).toBeVisible();
+		await expect(page.locator('img[alt*="mobile wallpaper"]')).toBeVisible();
 		
 		// Verify images have proper alt text
 		await expect(page.locator('img[alt*="Mountain Serenity"]')).toBeVisible();

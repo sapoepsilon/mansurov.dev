@@ -1,25 +1,10 @@
 <script lang="ts">
 	import { fade } from 'svelte/transition';
 	import { cn } from '$lib/utils.js';
-	import DeviceFrame from '$lib/components/DeviceFrame.svelte';
-	import { browser } from '$app/environment';
-	import { onMount } from 'svelte';
 
 	export let data;
 	
 	const { wallpapers } = data;
-	let isMobile = false;
-
-	onMount(() => {
-		if (browser) {
-			const checkDevice = () => {
-				isMobile = window.innerWidth < 768;
-			};
-			checkDevice();
-			window.addEventListener('resize', checkDevice);
-			return () => window.removeEventListener('resize', checkDevice);
-		}
-	});
 
 	function getThemeColor(theme: string) {
 		switch (theme) {
@@ -93,28 +78,31 @@
 									</div>
 								</div>
 								
-								<!-- Device Previews -->
-								<div class="flex justify-center items-center gap-6 order-1 lg:order-2">
-									{#if isMobile}
-										<!-- Mobile: Show only iPhone -->
-										<DeviceFrame 
-											type="iphone" 
-											wallpaperUrl={pack.mobile_wallpaper} 
-											alt="{pack.name} mobile wallpaper"
-										/>
-									{:else}
-										<!-- Desktop: Show both MacBook and iPhone -->
-										<DeviceFrame 
-											type="macbook" 
-											wallpaperUrl={pack.desktop_wallpaper} 
-											alt="{pack.name} desktop wallpaper"
-										/>
-										<DeviceFrame 
-											type="iphone" 
-											wallpaperUrl={pack.mobile_wallpaper} 
-											alt="{pack.name} mobile wallpaper"
-										/>
-									{/if}
+								<!-- Wallpaper Previews -->
+								<div class="flex justify-center items-center gap-4 order-1 lg:order-2">
+									<!-- Desktop Wallpaper -->
+									<div class="space-y-2">
+										<div class="aspect-video w-48 md:w-64 rounded-lg overflow-hidden shadow-md">
+											<img 
+												src={pack.desktop_wallpaper} 
+												alt="{pack.name} desktop wallpaper"
+												class="w-full h-full object-cover"
+											/>
+										</div>
+										<p class="text-xs text-center text-muted-foreground">Desktop</p>
+									</div>
+									
+									<!-- Mobile Wallpaper -->
+									<div class="space-y-2">
+										<div class="aspect-[9/16] w-24 md:w-32 rounded-lg overflow-hidden shadow-md">
+											<img 
+												src={pack.mobile_wallpaper} 
+												alt="{pack.name} mobile wallpaper"
+												class="w-full h-full object-cover"
+											/>
+										</div>
+										<p class="text-xs text-center text-muted-foreground">Mobile</p>
+									</div>
 								</div>
 							</div>
 						</div>
