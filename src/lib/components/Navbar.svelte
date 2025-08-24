@@ -14,6 +14,7 @@
         { name: "About", path: "/about" },
         // { name: "Blog", path: "/blog" },
         { name: "Projects", path: "/projects" },
+        { name: "Wallpapers", path: "/wallpapers" },
         { name: "Hire Me", path: "/hireme" },
         { name: "Contact Me", path: "/contact" },
     ];
