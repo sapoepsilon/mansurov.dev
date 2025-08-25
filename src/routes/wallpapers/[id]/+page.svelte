@@ -105,8 +105,11 @@
     }
 
     function downloadImage(url: string, filename: string) {
+        // Use our API endpoint to proxy the download
+        const downloadUrl = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+        
         const link = document.createElement("a");
-        link.href = url;
+        link.href = downloadUrl;
         link.download = filename;
         document.body.appendChild(link);
         link.click();
