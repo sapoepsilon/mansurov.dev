@@ -62,7 +62,7 @@
                 id="name"
                 bind:value={name}
                 placeholder="Enter your name"
-                class="w-full transition-all duration-300 glass-input glass-layers"
+                class="w-full transition-all duration-300 "
             />
         </div>
         <div class="space-y-2">
@@ -72,7 +72,7 @@
                 type="email"
                 bind:value={email}
                 placeholder="Enter your email"
-                class="w-full transition-all duration-300 glass-input glass-layers"
+                class="w-full transition-all duration-300 "
             />
         </div>
     </div>
@@ -82,12 +82,12 @@
             id="message"
             bind:value={message}
             placeholder="Enter your message"
-            class="w-full min-h-[120px] transition-all duration-300 glass-input glass-layers"
+            class="w-full min-h-[120px] transition-all duration-300 "
         />
     </div>
     <Button
         type="submit"
-        class="w-full glass-button glass-layers glass-refract"
+        class="w-full "
         disabled={isLoading}
     >
         {#if isLoading}

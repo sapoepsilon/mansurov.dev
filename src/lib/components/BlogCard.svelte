@@ -16,7 +16,7 @@
 
 <a href="/blog/{id}" class="block w-full group">
     <Card.Root
-        class="flex flex-col sm:flex-row md:flex-row text-card-foreground w-full  hover:scale-[1.02] transition-all duration-300 glass-refract"
+        class="flex flex-col sm:flex-row md:flex-row text-card-foreground w-full  hover:scale-[1.02] transition-all duration-300 "
     >
         <div
             class="w-full sm:w-1/4 aspect-video sm:aspect-square overflow-hidden"
@@ -33,7 +33,7 @@
             <Card.Footer class="pt-4">
                 <Button
                     variant="outline"
-                    class="w-24 glass-button glass-layers glass-refract group-hover:glass-button"
+                    class="w-24 group-hover:"
                     >Read</Button
                 >
             </Card.Footer>
