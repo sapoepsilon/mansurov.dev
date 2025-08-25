@@ -31,11 +31,8 @@
 <div class="min-h-screen relative">
     <!-- Static background - always visible -->
     <div 
-        class="fixed inset-0 bg-cover bg-center" 
-        style="background-image: url('/abstract-green-grunge-background.jpg'); 
-               opacity: 1.0;
-               filter: blur(0.5px);
-               z-index: -1;">
+        class="fixed inset-0 bg-background" 
+        style="z-index: -1;">
     </div>
     
     <div class="relative z-10">

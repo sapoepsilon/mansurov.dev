@@ -19,6 +19,8 @@
         mobile: string; 
         desktop: string; 
         name: string;
+        mobilePreview: string;
+        desktopPreview: string;
     }> = [];
     let loading = true;
     let currentIndex = 0;
@@ -33,12 +35,21 @@
         loading = false;
     });
 
+    function getPreviewUrl(originalUrl: string, type: 'mobile' | 'desktop'): string {
+        // Replace with WebP preview versions
+        const urlParts = originalUrl.split('/');
+        const filename = urlParts[urlParts.length - 1];
+        const baseName = filename.replace('_Mobile.jpg', '').replace('_Desktop.jpg', '').replace('_desktop.jpg', '');
+        const previewFilename = `${baseName}_${type === 'mobile' ? 'Mobile' : 'Desktop'}_preview.webp`;
+        return originalUrl.replace(filename, previewFilename);
+    }
+
     async function loadWallpapers() {
         console.log('Starting to load wallpapers...');
         
         // Use the actual file names from your bucket
         const baseUrl = 'https://wallapappers.mansurov.dev/wallpapers/timpTrip/';
-        const wallpaperImages = [
+        const wallpaperData = [
             { name: 'Summit', desktop: `${baseUrl}Summit_Desktop.jpg`, mobile: `${baseUrl}Summit_Mobile.jpg` },
             { name: 'Almost', desktop: `${baseUrl}Almost_Desktop.jpg`, mobile: `${baseUrl}Almost_Mobile.jpg` },
             { name: 'Desolate', desktop: `${baseUrl}Desolate_Desktop.jpg`, mobile: `${baseUrl}Desolate_Mobile.jpg` },
@@ -48,7 +59,17 @@
             { name: 'Timp Lush', desktop: `${baseUrl}Timp_Lush_Desktop.jpg`, mobile: `${baseUrl}Timp_Lush_Mobile.jpg` }
         ];
         
-        console.log('Loading wallpapers with correct file names:', wallpaperImages);
+        // Create optimized versions for preview and keep originals for download
+        const wallpaperImages = wallpaperData.map(item => ({
+            name: item.name,
+            desktop: item.desktop,
+            mobile: item.mobile,
+            // Optimized WebP versions for preview (much smaller file sizes)
+            desktopPreview: getPreviewUrl(item.desktop, 'desktop'),
+            mobilePreview: getPreviewUrl(item.mobile, 'mobile')
+        }));
+        
+        console.log('Loading wallpapers with WebP preview optimization:', wallpaperImages);
         images = wallpaperImages;
         return;
         
@@ -222,7 +243,7 @@
                         {/if}
 
                         <IPhoneFrame
-                            imageUrl={currentImage.mobile}
+                            imageUrl={currentImage.mobilePreview}
                             alt="{currentImage.name} mobile wallpaper"
                         />
 
@@ -240,7 +261,7 @@
                     <!-- Desktop iPhone Frame -->
                     <div class="hidden md:block">
                         <IPhoneFrame
-                            imageUrl={currentImage.mobile}
+                            imageUrl={currentImage.mobilePreview}
                             alt="{currentImage.name} mobile wallpaper"
                         />
                     </div>
@@ -260,7 +281,7 @@
                     </h3>
 
                     <MacBookFrame
-                        imageUrl={currentImage.desktop}
+                        imageUrl={currentImage.desktopPreview}
                         alt="{currentImage.name} desktop wallpaper"
                     />
 
@@ -288,7 +309,7 @@
                                 : 'border-transparent hover:border-muted-foreground/50'}"
                         >
                             <img
-                                src={image.mobile}
+                                src={image.mobilePreview}
                                 alt="Thumbnail {index + 1}"
                                 class="w-full h-full object-cover loading-lazy"
                                 loading="lazy"
