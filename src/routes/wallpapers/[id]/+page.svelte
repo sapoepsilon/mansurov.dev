@@ -126,13 +126,9 @@
     }
 
     function downloadImage(url: string, filename: string) {
-        // Use API proxy to handle cross-origin downloads
-        const downloadUrl = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
-        
         const link = document.createElement("a");
-        link.href = downloadUrl;
+        link.href = url;
         link.download = filename;
-        link.style.display = 'none';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
