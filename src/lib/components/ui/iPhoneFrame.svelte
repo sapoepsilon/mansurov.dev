@@ -2,13 +2,14 @@
     export let imageUrl: string;
     export let alt: string = "Wallpaper preview";
     import iPhoneDock from "$lib/assets/iPhone dock.png";
+    import iPhoneFrame from "$lib/assets/Apple iPhone 16 Pro White Titanium.svg";
 </script>
 
 <div class="relative w-[93%] h-[93%] max-w-xs mx-auto">
     <!-- iPhone Frame (on top) -->
     <div class="relative flex justify-center items-center">
         <img
-            src="/src/lib/assets/Apple iPhone 16 Pro White Titanium.svg"
+            src={iPhoneFrame}
             alt="iPhone 16 Pro frame"
             class="object-contain z-[23] w-full h-full"
         />
