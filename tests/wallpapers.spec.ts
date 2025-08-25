@@ -1,100 +1,93 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Wallpapers Page', () => {
-	test('should display wallpapers page with wallpaper packs', async ({ page }) => {
-		await page.goto('http://localhost:5173/wallpapers');
+	test('should load wallpapers page successfully', async ({ page }) => {
+		await page.goto('/wallpapers');
 		
+		// Check page title
+		await expect(page).toHaveTitle(/Wallpapers \| Ismatulla Mansurov/);
+		
+		// Check main heading
+		await expect(page.getByRole('heading', { name: 'Wallpapers' })).toBeVisible();
+		
+		// Check description
+		await expect(page.getByText('Curated collections of beautiful wallpapers for your devices')).toBeVisible();
+	});
+
+	test('should display Timpanogos Trip wallpaper pack', async ({ page }) => {
+		await page.goto('/wallpapers');
+		
+		// Check that the Timpanogos Trip pack is displayed
+		await expect(page.getByRole('heading', { name: 'Timpanogos Trip' })).toBeVisible();
+		await expect(page.getByText('Beautiful moments from the Timpanogos hiking adventure')).toBeVisible();
+		
+		// Check that the pack link is present
+		const packLink = page.getByRole('link', { name: /Timpanogos Trip/ });
+		await expect(packLink).toBeVisible();
+		await expect(packLink).toHaveAttribute('href', '/wallpapers/timpanogos-trip');
+	});
+
+	test('should navigate to individual wallpaper pack page', async ({ page }) => {
+		await page.goto('/wallpapers');
+		
+		// Click on the Timpanogos Trip pack
+		await page.getByRole('link', { name: /Timpanogos Trip/ }).click();
+		
+		// Check that we're on the correct page
+		await expect(page).toHaveURL('/wallpapers/timpanogos-trip');
+		await expect(page).toHaveTitle(/Timpanogos Trip - Wallpapers \| Ismatulla Mansurov/);
+		
+		// Check page content
+		await expect(page.getByRole('heading', { name: 'Timpanogos Trip' })).toBeVisible();
+		await expect(page.getByText('Beautiful moments from the Timpanogos hiking adventure')).toBeVisible();
+		
+		// Check that mobile and desktop sections are present
+		await expect(page.getByRole('heading', { name: 'Mobile' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Desktop' })).toBeVisible();
+		
+		// Check that wallpaper images are present
+		await expect(page.getByAltText('Timpanogos Trip mobile wallpaper')).toBeVisible();
+		await expect(page.getByAltText('Timpanogos Trip desktop wallpaper')).toBeVisible();
+		
+		// Check that download button is present
+		await expect(page.getByRole('button', { name: 'Download' })).toBeVisible();
+		
+		// Check back navigation link
+		const backLink = page.getByRole('link', { name: 'Back to Wallpapers' });
+		await expect(backLink).toBeVisible();
+		await expect(backLink).toHaveAttribute('href', '/wallpapers');
+	});
+
+	test('should navigate back to wallpapers page from individual pack', async ({ page }) => {
+		// Start on the individual pack page
+		await page.goto('/wallpapers/timpanogos-trip');
+		
+		// Click back to wallpapers
+		await page.getByRole('link', { name: 'Back to Wallpapers' }).click();
+		
+		// Should be back on the main wallpapers page
 		await expect(page).toHaveURL('/wallpapers');
-		await expect(page.locator('h1')).toContainText('Wallpapers');
-		await expect(page.getByText('Curated collections of beautiful wallpapers')).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Wallpapers' })).toBeVisible();
 	});
 
-	test('should display wallpaper packs with preview images', async ({ page }) => {
-		await page.goto('http://localhost:5173/wallpapers');
+	test('should have working navbar navigation to wallpapers', async ({ page }) => {
+		await page.goto('/about');
 		
-		// Verify pack titles are displayed
-		await expect(page.getByRole('heading', { name: 'Mountain Serenity' })).toBeVisible();
-		await expect(page.getByRole('heading', { name: 'Ocean Depths' })).toBeVisible();
-		await expect(page.getByRole('heading', { name: 'Abstract Geometry' })).toBeVisible();
-		await expect(page.getByRole('heading', { name: 'Forest Canopy' })).toBeVisible();
+		// Click on Wallpapers in navigation
+		await page.getByRole('link', { name: 'Wallpapers' }).click();
 		
-		// Verify preview images are present
-		await expect(page.getByText('Desktop')).toBeVisible();
-		await expect(page.getByText('Mobile')).toBeVisible();
-	});
-
-	test('should display tags and themes for wallpaper packs', async ({ page }) => {
-		await page.goto('http://localhost:5173/wallpapers');
-		
-		// Verify tags are displayed
-		await expect(page.getByText('nature')).toBeVisible();
-		await expect(page.getByText('mountains')).toBeVisible();
-		await expect(page.getByText('ocean')).toBeVisible();
-		await expect(page.getByText('abstract')).toBeVisible();
-		
-		// Verify theme indicators
-		await expect(page.getByText('light')).toBeVisible();
-		await expect(page.getByText('dark')).toBeVisible();
-		await expect(page.getByText('colorful')).toBeVisible();
+		// Verify navigation worked
+		await expect(page).toHaveURL('/wallpapers');
+		await expect(page.getByRole('heading', { name: 'Wallpapers' })).toBeVisible();
 	});
 
 	test('should be responsive on mobile devices', async ({ page }) => {
 		// Test mobile viewport
 		await page.setViewportSize({ width: 375, height: 667 });
-		await page.goto('http://localhost:5173/wallpapers');
+		await page.goto('/wallpapers');
 		
 		// Verify wallpapers page is accessible on mobile
-		await expect(page.locator('h1')).toContainText('Wallpapers');
-		await expect(page.getByRole('heading', { name: 'Mountain Serenity' })).toBeVisible();
-		
-		// Verify preview images are visible on mobile
-		await expect(page.getByText('Desktop')).toBeVisible();
-		await expect(page.getByText('Mobile')).toBeVisible();
-	});
-
-	test('should show preview images on desktop', async ({ page }) => {
-		// Test desktop viewport
-		await page.setViewportSize({ width: 1280, height: 720 });
-		await page.goto('http://localhost:5173/wallpapers');
-		
-		// Both desktop and mobile previews should be visible
-		await expect(page.getByText('Desktop')).toBeVisible();
-		await expect(page.getByText('Mobile')).toBeVisible();
-	});
-
-	test('should have working navbar navigation to wallpapers', async ({ page }) => {
-		await page.goto('http://localhost:5173/about');
-		
-		// Click on Wallpapers in navigation
-		await page.click('a[href="/wallpapers"]');
-		
-		// Verify navigation worked
-		await expect(page).toHaveURL('/wallpapers');
-		await expect(page.locator('h1')).toContainText('Wallpapers');
-	});
-
-	test('should display wallpaper preview images', async ({ page }) => {
-		await page.goto('http://localhost:5173/wallpapers');
-		
-		// Verify preview images are visible
-		await expect(page.locator('img[alt*="desktop wallpaper"]')).toBeVisible();
-		await expect(page.locator('img[alt*="mobile wallpaper"]')).toBeVisible();
-		
-		// Verify images have proper alt text
-		await expect(page.locator('img[alt*="Mountain Serenity"]')).toBeVisible();
-		await expect(page.locator('img[alt*="Ocean Depths"]')).toBeVisible();
-	});
-
-	test('should display wallpack descriptions and metadata', async ({ page }) => {
-		await page.goto('http://localhost:5173/wallpapers');
-		
-		// Verify descriptions are shown
-		await expect(page.getByText('Breathtaking mountain landscapes')).toBeVisible();
-		await expect(page.getByText('Stunning underwater photography')).toBeVisible();
-		await expect(page.getByText('Modern geometric patterns')).toBeVisible();
-		await expect(page.getByText('Peaceful forest scenes')).toBeVisible();
-		
-		// Verify resolution info is displayed
-		await expect(page.getByText('Available for desktop (2560x1600) and mobile (1080x1920)')).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Wallpapers' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Timpanogos Trip' })).toBeVisible();
 	});
 });

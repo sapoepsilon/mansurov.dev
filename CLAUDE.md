@@ -28,14 +28,13 @@ This is a SvelteKit personal portfolio website with blog functionality, built wi
 - **Supabase** for database and authentication
 - **TailwindCSS** + shadcn-svelte for UI
 - **Superforms + Zod** for form handling and validation
-- **Threlte** for 3D graphics capabilities
+- **Use 
 
 ## Development Workflow
-Number one, we implement feature, whatever the user requests. Number two, we verify that if that feature was implemented correctly by using Playwright MCP, we go to navigate to the local host, and then we check if that thing they wanted is correct. If you think it's correct, then ask a user if it was implemented correctly or not. If the user gives you a green light, you then snapshot it using Git and you use commitLint and don't mention claude code. You do not mention Anthropic in your commit messages. Number four, you write test cases, end-to-end test cases and playwrights to make sure that it does not break in the future. And then once you're done implementing any future, you run E2E test cases again, to make sure that everything is correct. If everything is correct, you either tell the user that it's done or you go to the next step in the plan document if it's provided. 
+Always try to use tailwind when possible. Number one, we implement feature, whatever the user requests. Number two, we verify that if that feature was implemented correctly by using Playwright MCP, we go to navigate to the local host, and then we check if that thing they wanted is correct. If you think it's correct, then ask a user if it was implemented correctly or not. If the user gives you a green light, you then snapshot it using Git and you use commitLint and don't mention claude code. You do not mention Anthropic in your commit messages. Number four, you write test cases, end-to-end test cases and playwrights to make sure that it does not break in the future. And then once you're done implementing any future, you run E2E test cases again, to make sure that everything is correct. If everything is correct, you either tell the user that it's done or you go to the next step in the plan document if it's provided. 
 ### Key Architectural Patterns
 
 **Authentication Flow:**
-- Supabase auth with server-side session validation
 - Protected routes use `+page.server.ts` load functions with redirect logic
 - Admin access via `/admin` route that redirects to `/blog/create` on success
 
@@ -51,9 +50,6 @@ Number one, we implement feature, whatever the user requests. Number two, we ver
 - Form validation using Superforms with Zod schemas
 - Auto-save functionality uses localStorage with 30-second intervals
 
-**Database Schema:**
-- Primary table: `blog_posts` with fields: id, title, content, excerpt, published, created_at, updated_at, image_url
-- Authentication handled by Supabase built-in tables
 
 ### File Structure Conventions
 
@@ -61,19 +57,6 @@ Number one, we implement feature, whatever the user requests. Number two, we ver
 - Server-side logic in `+page.server.ts` files
 - Form components separated from page components
 - Alias `@/*` maps to `src/lib/*`
-
-### Environment Variables Required
-
-```
-SUPABASE_URL=your_supabase_project_url
-SUPABASE_ANON=your_supabase_anon_key
-GOOGLE_CALENDAR_API_KEY=your_google_api_key
-GOOGLE_CALENDAR_ID=your_calendar_id
-GITHUB_TOKEN=your_github_token
-GROQ_API_KEY=your_groq_api_key
-EMAIL_USER=your_email
-EMAIL_PASS=your_email_password
-```
 
 ### Form Handling Pattern
 

@@ -30,7 +30,7 @@
 </script>
 
 <Menubar.Root
-    class="flex items-center h-[64px] px-2 lg:px-4 bg-background w-full"
+    class="sticky top-0 z-50 flex items-center h-[64px] px-2 lg:px-4 bg-background/80 backdrop-blur-md w-full border-b"
 >
     <div class="nav-container">
         <div class="menu-container">
