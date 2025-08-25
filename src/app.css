@@ -34,17 +34,6 @@
         --ring: 20 14.3% 4.1%;
 
         --radius: 0.5rem;
-
-        --glass-opacity: 0.95;
-        --glass-opacity-light: 0.9;
-        --glass-opacity-heavy: 0.98;
-        --glass-border-opacity: 0.4;
-        --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        --glass-shadow-elevated: 0 20px 60px rgba(0, 0, 0, 0.15);
-        --glass-refraction: rgba(255, 255, 255, 0.15);
-        --glass-highlight: rgba(255, 255, 255, 0.35);
-        --glass-gradient-start: rgba(255, 255, 255, 0.25);
-        --glass-gradient-end: rgba(255, 255, 255, 0.12);
     }
 
     .dark {

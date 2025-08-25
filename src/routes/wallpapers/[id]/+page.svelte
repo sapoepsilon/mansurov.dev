@@ -28,45 +28,39 @@
 
     async function loadWallpapers() {
         try {
-            // Fetch list of files from the public bucket
-            const response = await fetch('https://wallpapers.mansurov.dev/wallpapers/timpTrip/', {
-                method: 'GET'
-            });
+            // Since we know the file naming pattern, let's try a few known images
+            const baseUrl = 'https://wallapappers.mansurov.dev/wallpapers/timpTrip/';
+            const knownImages = [
+                'Almost', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'
+            ];
             
-            if (response.ok) {
-                const text = await response.text();
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(text, 'text/html');
-                const links = Array.from(doc.querySelectorAll('a')).map(a => a.href);
+            const loadedImages = [];
+            
+            for (const imageName of knownImages) {
+                const desktopUrl = `${baseUrl}${imageName}_Desktop.jpg`;
+                const mobileUrl = `${baseUrl}${imageName}_Mobile.jpg`;
                 
-                const imageFiles = links.filter(link => 
-                    link.endsWith('.jpg') || link.endsWith('.jpeg') || link.endsWith('.png')
-                );
-                
-                // Group images by their base name
-                const imageGroups = new Map<string, { mobile?: string; desktop?: string }>();
-                
-                imageFiles.forEach(imageUrl => {
-                    const fileName = imageUrl.split('/').pop() || '';
-                    const baseName = fileName.replace(/_Mobile\.(jpg|jpeg|png)$|_Desktop\.(jpg|jpeg|png)$/i, '');
+                try {
+                    // Check if both images exist by making HEAD requests
+                    const [desktopCheck, mobileCheck] = await Promise.all([
+                        fetch(desktopUrl, { method: 'HEAD' }),
+                        fetch(mobileUrl, { method: 'HEAD' })
+                    ]);
                     
-                    if (!imageGroups.has(baseName)) {
-                        imageGroups.set(baseName, {});
+                    if (desktopCheck.ok && mobileCheck.ok) {
+                        loadedImages.push({
+                            name: imageName,
+                            desktop: desktopUrl,
+                            mobile: mobileUrl
+                        });
                     }
-                    
-                    if (fileName.toLowerCase().includes('_mobile.')) {
-                        imageGroups.get(baseName)!.mobile = imageUrl;
-                    } else if (fileName.toLowerCase().includes('_desktop.')) {
-                        imageGroups.get(baseName)!.desktop = imageUrl;
-                    }
-                });
-                
-                images = Array.from(imageGroups.entries()).map(([name, urls]) => ({
-                    name,
-                    mobile: urls.mobile || '',
-                    desktop: urls.desktop || ''
-                })).filter(img => img.mobile && img.desktop);
+                } catch {
+                    // Skip this image if it doesn't exist
+                    continue;
+                }
             }
+            
+            images = loadedImages;
         } catch (error) {
             console.error('Failed to load wallpapers:', error);
         }
