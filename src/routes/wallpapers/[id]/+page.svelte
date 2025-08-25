@@ -15,7 +15,11 @@
     export let data;
 
     const { wallpaper } = data;
-    let images: Array<{ mobile: string; desktop: string; name: string }> = [];
+    let images: Array<{ 
+        mobile: string; 
+        desktop: string; 
+        name: string;
+    }> = [];
     let loading = true;
     let currentIndex = 0;
 
@@ -38,7 +42,7 @@
             { name: 'Summit', desktop: `${baseUrl}Summit_Desktop.jpg`, mobile: `${baseUrl}Summit_Mobile.jpg` },
             { name: 'Almost', desktop: `${baseUrl}Almost_Desktop.jpg`, mobile: `${baseUrl}Almost_Mobile.jpg` },
             { name: 'Desolate', desktop: `${baseUrl}Desolate_Desktop.jpg`, mobile: `${baseUrl}Desolate_Mobile.jpg` },
-            { name: 'Giant', desktop: `${baseUrl}Giant_desktop.jpg`, mobile: `${baseUrl}Giant_Mobile.jpg` }, // Note: desktop has lowercase 'd'
+            { name: 'Giant', desktop: `${baseUrl}Giant_desktop.jpg`, mobile: `${baseUrl}Giant_Mobile.jpg` },
             { name: 'God', desktop: `${baseUrl}God_Desktop.jpg`, mobile: `${baseUrl}God_Mobile.jpg` },
             { name: 'Landscape', desktop: `${baseUrl}Landscape_Desktop.jpg`, mobile: `${baseUrl}Landscape_Mobile.jpg` },
             { name: 'Timp Lush', desktop: `${baseUrl}Timp_Lush_Desktop.jpg`, mobile: `${baseUrl}Timp_Lush_Mobile.jpg` }
@@ -283,7 +287,8 @@
                             <img
                                 src={image.mobile}
                                 alt="Thumbnail {index + 1}"
-                                class="w-full h-full object-cover"
+                                class="w-full h-full object-cover loading-lazy"
+                                loading="lazy"
                             />
                         </button>
                     {/each}
