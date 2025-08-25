@@ -1,5 +1,5 @@
 <script lang="ts">
-	import LiquidGlass from '$lib/components/LiquidGlass.svelte';
+	// import LiquidGlass from '$lib/components/LiquidGlass.svelte';
 	import { Card, CardContent, CardHeader, CardTitle } from '$lib/components/ui/card';
 	import { Button } from '$lib/components/ui/button';
 	import { ChevronDown, Settings, Palette, Move, RotateCcw } from 'lucide-svelte';
@@ -134,7 +134,7 @@
 							</div>
 							
 							<!-- Liquid Glass Component -->
-							<div class="absolute" style="left: {glassX - 200}px; top: {glassY - 150}px;">
+							<!-- <div class="absolute" style="left: {glassX - 200}px; top: {glassY - 150}px;">
 								<LiquidGlass
 									width={400}
 									height={300}
@@ -149,6 +149,11 @@
 									mousePosition={mousePos}
 									{enabled}
 								/>
+							</div> -->
+							<div class="absolute" style="left: {glassX - 200}px; top: {glassY - 150}px;">
+								<div class="w-96 h-72 bg-gradient-to-br from-blue-200/30 to-purple-200/30 backdrop-blur-sm rounded-lg border border-white/20">
+									<p class="p-4 text-center text-muted-foreground">LiquidGlass component placeholder</p>
+								</div>
 							</div>
 						</div>
 					</CardContent>

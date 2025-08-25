@@ -1,5 +1,6 @@
 <script lang="ts">
     import { fade } from "svelte/transition";
+    import { onMount } from "svelte";
     import {
         ArrowLeft,
         Download,
@@ -13,8 +14,63 @@
 
     export let data;
 
-    const { wallpaper, images } = data;
+    const { wallpaper } = data;
+    let images: Array<{ mobile: string; desktop: string; name: string }> = [];
+    let loading = true;
     let currentIndex = 0;
+
+    onMount(async () => {
+        if (wallpaper.id === 'timpanogos-trip') {
+            await loadWallpapers();
+        }
+        loading = false;
+    });
+
+    async function loadWallpapers() {
+        try {
+            // Fetch list of files from the public bucket
+            const response = await fetch('https://wallpapers.mansurov.dev/wallpapers/timpTrip/', {
+                method: 'GET'
+            });
+            
+            if (response.ok) {
+                const text = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const links = Array.from(doc.querySelectorAll('a')).map(a => a.href);
+                
+                const imageFiles = links.filter(link => 
+                    link.endsWith('.jpg') || link.endsWith('.jpeg') || link.endsWith('.png')
+                );
+                
+                // Group images by their base name
+                const imageGroups = new Map<string, { mobile?: string; desktop?: string }>();
+                
+                imageFiles.forEach(imageUrl => {
+                    const fileName = imageUrl.split('/').pop() || '';
+                    const baseName = fileName.replace(/_Mobile\.(jpg|jpeg|png)$|_Desktop\.(jpg|jpeg|png)$/i, '');
+                    
+                    if (!imageGroups.has(baseName)) {
+                        imageGroups.set(baseName, {});
+                    }
+                    
+                    if (fileName.toLowerCase().includes('_mobile.')) {
+                        imageGroups.get(baseName)!.mobile = imageUrl;
+                    } else if (fileName.toLowerCase().includes('_desktop.')) {
+                        imageGroups.get(baseName)!.desktop = imageUrl;
+                    }
+                });
+                
+                images = Array.from(imageGroups.entries()).map(([name, urls]) => ({
+                    name,
+                    mobile: urls.mobile || '',
+                    desktop: urls.desktop || ''
+                })).filter(img => img.mobile && img.desktop);
+            }
+        } catch (error) {
+            console.error('Failed to load wallpapers:', error);
+        }
+    }
 
     function nextImage() {
         currentIndex = (currentIndex + 1) % images.length;
@@ -78,6 +134,19 @@
                 {wallpaper.description}
             </p>
         </div>
+
+        {#if loading}
+            <div class="flex justify-center items-center py-20">
+                <div class="text-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                    <p class="text-muted-foreground">Loading wallpapers...</p>
+                </div>
+            </div>
+        {:else if images.length === 0}
+            <div class="flex justify-center items-center py-20">
+                <p class="text-muted-foreground">No wallpapers available for this collection.</p>
+            </div>
+        {:else}
 
         <!-- Carousel Navigation -->
         {#if images.length > 1}
@@ -202,6 +271,7 @@
                     {/each}
                 </div>
             </div>
+        {/if}
         {/if}
     </div>
 </section>

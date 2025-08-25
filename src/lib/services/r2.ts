@@ -16,12 +16,12 @@ const r2Client = new S3Client({
 	}
 });
 
-export async function listImages(path: string): Promise<string[]> {
+export async function listImages(path: string, maxKeys: number = 50): Promise<string[]> {
 	try {
 		const command = new ListObjectsV2Command({
 			Bucket: R2_BUCKET_NAME,
 			Prefix: path,
-			MaxKeys: 50
+			MaxKeys: maxKeys
 		});
 
 		const response: ListObjectsV2CommandOutput = await r2Client.send(command);

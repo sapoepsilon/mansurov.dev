@@ -14,8 +14,8 @@ export const wallpaperPacks: WallpaperPack[] = [
 		id: 'timpanogos-trip',
 		name: 'Timpanogos Trip',
 		description: 'Beautiful moments from the Timpanogos hiking adventure',
-		desktop_wallpaper: 'https://picsum.photos/2560/1600?random=1',
-		mobile_wallpaper: 'https://picsum.photos/1080/1920?random=1',
+		desktop_wallpaper: 'https://wallpapers.mansurov.dev/wallpapers/timpTrip/1_Desktop.jpg',
+		mobile_wallpaper: 'https://wallpapers.mansurov.dev/wallpapers/timpTrip/1_Mobile.jpg',
 		theme: 'light',
 		tags: ['nature', 'mountains', 'hiking', 'timpanogos'],
 		created_at: '2024-08-24'
