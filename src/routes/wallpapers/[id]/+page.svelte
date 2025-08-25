@@ -22,30 +22,54 @@
     onMount(async () => {
         if (wallpaper.id === 'timpanogos-trip') {
             await loadWallpapers();
+        } else {
+            // For other wallpaper packs, add some dummy data for testing
+            images = [];
         }
         loading = false;
     });
 
     async function loadWallpapers() {
+        console.log('Starting to load wallpapers...');
+        
+        // Use the actual file names from your bucket
+        const baseUrl = 'https://wallapappers.mansurov.dev/wallpapers/timpTrip/';
+        const wallpaperImages = [
+            { name: 'Summit', desktop: `${baseUrl}Summit_Desktop.jpg`, mobile: `${baseUrl}Summit_Mobile.jpg` },
+            { name: 'Almost', desktop: `${baseUrl}Almost_Desktop.jpg`, mobile: `${baseUrl}Almost_Mobile.jpg` },
+            { name: 'Desolate', desktop: `${baseUrl}Desolate_Desktop.jpg`, mobile: `${baseUrl}Desolate_Mobile.jpg` },
+            { name: 'Giant', desktop: `${baseUrl}Giant_desktop.jpg`, mobile: `${baseUrl}Giant_Mobile.jpg` }, // Note: desktop has lowercase 'd'
+            { name: 'God', desktop: `${baseUrl}God_Desktop.jpg`, mobile: `${baseUrl}God_Mobile.jpg` },
+            { name: 'Landscape', desktop: `${baseUrl}Landscape_Desktop.jpg`, mobile: `${baseUrl}Landscape_Mobile.jpg` },
+            { name: 'Timp Lush', desktop: `${baseUrl}Timp_Lush_Desktop.jpg`, mobile: `${baseUrl}Timp_Lush_Mobile.jpg` }
+        ];
+        
+        console.log('Loading wallpapers with correct file names:', wallpaperImages);
+        images = wallpaperImages;
+        return;
+        
+        // Original logic commented out for now
+        /*
         try {
-            // Since we know the file naming pattern, let's try a few known images
             const baseUrl = 'https://wallapappers.mansurov.dev/wallpapers/timpTrip/';
-            const knownImages = [
-                'Almost', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10'
-            ];
+            const knownImages = ['Almost', '1', '2', '3', '4', '5'];
             
+            console.log('Loading wallpapers from:', baseUrl);
             const loadedImages = [];
             
             for (const imageName of knownImages) {
                 const desktopUrl = `${baseUrl}${imageName}_Desktop.jpg`;
                 const mobileUrl = `${baseUrl}${imageName}_Mobile.jpg`;
                 
+                console.log(`Checking: ${desktopUrl} and ${mobileUrl}`);
+                
                 try {
-                    // Check if both images exist by making HEAD requests
                     const [desktopCheck, mobileCheck] = await Promise.all([
                         fetch(desktopUrl, { method: 'HEAD' }),
                         fetch(mobileUrl, { method: 'HEAD' })
                     ]);
+                    
+                    console.log(`${imageName}: Desktop ${desktopCheck.status}, Mobile ${mobileCheck.status}`);
                     
                     if (desktopCheck.ok && mobileCheck.ok) {
                         loadedImages.push({
@@ -54,16 +78,17 @@
                             mobile: mobileUrl
                         });
                     }
-                } catch {
-                    // Skip this image if it doesn't exist
-                    continue;
+                } catch (error) {
+                    console.log(`Error checking ${imageName}:`, error);
                 }
             }
             
+            console.log('Final loaded images:', loadedImages);
             images = loadedImages;
         } catch (error) {
             console.error('Failed to load wallpapers:', error);
         }
+        */
     }
 
     function nextImage() {

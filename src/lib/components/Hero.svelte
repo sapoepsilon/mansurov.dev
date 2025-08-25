@@ -26,7 +26,7 @@
     </div>
 
     <div
-        class="text-center p-4 glass-card glass-layers backdrop-blur-xl px-8 py-12 md:px-16 md:py-20 max-w-4xl mx-4"
+        class="text-center p-4 border bg-card text-card-foreground shadow-sm rounded-lg backdrop-blur-xl px-8 py-12 md:px-16 md:py-20 max-w-4xl mx-4"
     >
         <h1
             class="text-4xl md:text-6xl lg:text-8xl font-bold mb-4 bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text"
@@ -38,7 +38,7 @@
         </p>
         <Button
             on:click={scrollToExperience}
-            class="glass-button glass-layers glass-refract hover:scale-105 transition-transform"
+            class="hover:scale-105 transition-transform"
         >
             <ChevronDown class="mr-2 h-4 w-4" />
             More about me
@@ -60,7 +60,7 @@
 
         <div class="space-y-6">
             <div
-                class="glass-card glass-layers p-6 hover:scale-[1.02] transition-transform"
+                class="border bg-card text-card-foreground shadow-sm rounded-lg p-6 hover:scale-[1.02] transition-transform"
             >
                 <h3 class="text-xl font-semibold mb-2">Web Development</h3>
                 <p class="text-muted-foreground">
@@ -72,7 +72,7 @@
             </div>
 
             <div
-                class="glass-card glass-layers p-6 liquid-morph hover:scale-[1.02] transition-transform"
+                class="border bg-card text-card-foreground shadow-sm rounded-lg p-6 hover:scale-[1.02] transition-transform"
             >
                 <h3 class="text-xl font-semibold mb-2">Mobile Development</h3>
                 <p class="text-muted-foreground">
@@ -85,7 +85,7 @@
             </div>
 
             <div
-                class="glass-card glass-layers p-6 liquid-morph hover:scale-[1.02] transition-transform"
+                class="border bg-card text-card-foreground shadow-sm rounded-lg p-6 hover:scale-[1.02] transition-transform"
             >
                 <h3 class="text-xl font-semibold mb-2">XR and New Tech</h3>
                 <p class="text-muted-foreground">
@@ -98,7 +98,7 @@
         </div>
 
         <div
-            class="glass-card glass-layers p-8 mt-8 liquid-morph glass-refract"
+            class="border bg-card text-card-foreground shadow-sm rounded-lg p-8 mt-8"
         >
             <h2 class="text-2xl font-semibold mb-4">Outside of Work</h2>
             <p class="text-muted-foreground">

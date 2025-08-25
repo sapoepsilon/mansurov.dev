@@ -6,7 +6,7 @@
 </script>
 
 <MenubarPrimitive.Root
-	class={cn("flex h-10 items-center space-x-1 glass-menubar p-1", className)}
+	class={cn("flex h-10 items-center space-x-1 p-1", className)}
 	{...$$restProps}
 >
 	<slot />
