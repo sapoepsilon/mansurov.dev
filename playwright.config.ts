@@ -11,7 +11,7 @@ export default defineConfig({
 		['html', { open: 'never' }] // HTML report but don't auto-open
 	],
 	use: {
-		baseURL: 'http://localhost:5173',
+		baseURL: 'http://localhost:5174',
 		trace: 'on-first-retry',
 	},
 
@@ -40,7 +40,7 @@ export default defineConfig({
 
 	webServer: {
 		command: 'npm run dev',
-		port: 5173,
+		port: 5174,
 		reuseExistingServer: !process.env.CI,
 	},
 });
