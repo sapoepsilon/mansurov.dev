@@ -5,15 +5,16 @@ import { VITE_GOOGLE_SMTP_CLIENT_ID, VITE_GOOGLE_SMTP_CLIENT_SECRET, VITE_GOOGLE
 
 const USER_EMAIL = 'ismatulla@mansurov.dev';
 
-const oAuth2Client = new google.auth.OAuth2(VITE_GOOGLE_SMTP_CLIENT_ID, VITE_GOOGLE_SMTP_CLIENT_SECRET, VITE_GOOGLE_REDIRECT_URI);
-oAuth2Client.setCredentials({ refresh_token: VITE_GOOGLE_SMTP_REFRESH_TOKEN });
 export const POST: RequestHandler = async ({ request }) => {
     try {
         console.log('Parsing request JSON...');
-        console.log(`CLIENT_ID: ${VITE_GOOGLE_SMTP_CLIENT_ID}`)
         const { name, email, message } = await request.json();
         console.log('Request JSON parsed successfully:', { name, email });
 
+        // Create OAuth2 client
+        const oAuth2Client = new google.auth.OAuth2(VITE_GOOGLE_SMTP_CLIENT_ID, VITE_GOOGLE_SMTP_CLIENT_SECRET, VITE_GOOGLE_REDIRECT_URI);
+        oAuth2Client.setCredentials({ refresh_token: VITE_GOOGLE_SMTP_REFRESH_TOKEN });
+        
         // Generate access token
         console.log('Generating access token...');
         const accessTokenResponse = await oAuth2Client.getAccessToken();
