@@ -25,3 +25,6 @@ vite.config.ts.timestamp-*
 test-results/
 playwright-report/
 playwright/.cache/
+
+# MCP Configuration
+.mcp.json
