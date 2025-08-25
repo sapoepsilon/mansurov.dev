@@ -52,7 +52,7 @@
 
 <form
   on:submit|preventDefault={handleSubmit}
-  class="space-y-4"
+  class="space-y-4 glass-card p-8 liquid-morph"
   in:fade={{ duration: 300 }}
 >
   <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -62,7 +62,7 @@
         id="name"
         bind:value={name}
         placeholder="Enter your name"
-        class="w-full transition-all duration-300 focus:ring-2 focus:ring-primary"
+        class="w-full transition-all duration-300 glass-input glass-layers"
       />
     </div>
     <div class="space-y-2">
@@ -72,7 +72,7 @@
         type="email"
         bind:value={email}
         placeholder="Enter your email"
-        class="w-full transition-all duration-300 focus:ring-2 focus:ring-primary"
+        class="w-full transition-all duration-300 glass-input glass-layers"
       />
     </div>
   </div>
@@ -82,12 +82,12 @@
       id="message"
       bind:value={message}
       placeholder="Enter your message"
-      class="w-full min-h-[120px] transition-all duration-300 focus:ring-2 focus:ring-primary"
+      class="w-full min-h-[120px] transition-all duration-300 glass-input glass-layers"
     />
   </div>
   <Button
     type="submit"
-    class="w-full transition-all duration-300 hover:bg-primary-dark"
+    class="w-full glass-button glass-layers glass-refract liquid-morph"
     disabled={isLoading}
   >
     {#if isLoading}

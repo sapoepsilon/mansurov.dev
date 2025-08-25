@@ -14,7 +14,7 @@
 </script>
 
 <Dialog.Root open={true}>
-	<Dialog.Content class="sm:max-w-[525px]">
+	<Dialog.Content class="sm:max-w-[525px] glass-modal liquid-morph">
 		<Dialog.Header>
 			<Dialog.Title>{project.name}</Dialog.Title>
 			<Dialog.Description>
@@ -38,15 +38,15 @@
 				<div class="flex items-center flex-wrap gap-2 mb-2">
 					<Tag class="h-4 w-4" />
 					{#each project.topics as topic}
-						<span class="bg-gray-200 rounded-full px-2 py-1 text-sm">{topic}</span>
+						<span class="glass-button px-3 py-1 text-sm rounded-full">{topic}</span>
 					{/each}
 				</div>
 			{/if}
 		</div>
 		<Dialog.Footer class="flex justify-between">
-			<Button on:click={() => dispatch('close')}>Close</Button>
+			<Button on:click={() => dispatch('close')} class="glass-button glass-layers glass-refract">Close</Button>
 			<a href={project.html_url} target="_blank" rel="noopener noreferrer">
-				<Button>
+				<Button class="glass-button glass-layers glass-refract">
 					<ExternalLink class="mr-2 h-4 w-4" />
 					View on GitHub
 				</Button>

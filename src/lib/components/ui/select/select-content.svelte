@@ -22,7 +22,7 @@
 	{outTransitionConfig}
 	{sideOffset}
 	class={cn(
-		"bg-popover text-popover-foreground relative z-50 min-w-[8rem] overflow-hidden rounded-md border shadow-md outline-none",
+		"glass-modal text-popover-foreground relative z-50 min-w-[8rem] overflow-hidden rounded-md outline-none liquid-morph",
 		className
 	)}
 	{...$$restProps}

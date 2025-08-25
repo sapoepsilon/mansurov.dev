@@ -19,7 +19,7 @@
 	}
 </script>
 
-<Card.Root class="w-full h-full flex flex-col hover:shadow-lg transition-shadow duration-200 ease-in-out">
+<Card.Root class="w-full h-full flex flex-col glass-card glass-layers liquid-morph hover:scale-[1.02] transition-all duration-300 glass-refract">
 	<Card.Header class="flex-grow">
 		<Card.Title>{project.name}</Card.Title>
 		<Card.Description class="line-clamp-2">{project.description}</Card.Description>
@@ -38,7 +38,7 @@
 		<p class="mt-2 text-sm">Language: {project.language}</p>
 	</Card.Content>
 	<Card.Footer class="flex justify-between mt-auto">
-		<Button variant="outline" on:click={handleMoreInfo} disabled={isLoading}>
+		<Button variant="outline" on:click={handleMoreInfo} disabled={isLoading} class="glass-button glass-layers glass-refract">
 			{#if isLoading}
 				Loading...
 			{:else}
@@ -46,7 +46,7 @@
 			{/if}
 		</Button>
 		<a href={project.html_url} target="_blank" rel="noopener noreferrer">
-			<Button variant="outline" disabled={isLoading}>
+			<Button variant="outline" disabled={isLoading} class="glass-button glass-layers glass-refract">
 				{#if isLoading}
 					Loading...
 				{:else}
