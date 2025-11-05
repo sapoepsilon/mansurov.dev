@@ -65,11 +65,11 @@
 								
 								<!-- Project Image -->
 								{#if project.hero_image}
-									<div class="aspect-video rounded-lg overflow-hidden shadow-md">
+									<div class="rounded-lg overflow-hidden shadow-md max-h-[300px] bg-muted/50 flex items-center justify-center">
 										<img 
 											src={project.hero_image} 
 											alt={project.title}
-											class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+											class="w-full max-h-[300px] object-contain group-hover:scale-105 transition-transform duration-300"
 										/>
 									</div>
 								{/if}

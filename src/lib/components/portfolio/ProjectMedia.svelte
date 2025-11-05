@@ -18,13 +18,13 @@
 	}
 </script>
 
-<section class="space-y-8">
+<section class="space-y-8 max-w-4xl mx-auto">
 	<!-- Hero Media -->
 	{#if heroVideo}
-		<div class="relative rounded-xl overflow-hidden shadow-2xl">
-			<video 
-				controls 
-				class="w-full object-contain"
+		<div class="relative rounded-xl overflow-hidden shadow-2xl max-h-[600px] bg-muted/50 flex items-center justify-center">
+			<video
+				controls
+				class="w-full max-h-[600px] object-contain"
 				poster={heroImage}
 			>
 				<source src={heroVideo} type="video/mp4">
@@ -33,26 +33,26 @@
 			</video>
 		</div>
 	{:else if heroImage}
-		<div class="relative aspect-video rounded-xl overflow-hidden shadow-2xl">
-			<img 
-				src={heroImage} 
+		<div class="relative rounded-xl overflow-hidden shadow-2xl max-h-[500px] bg-muted/50 flex items-center justify-center">
+			<img
+				src={heroImage}
 				alt="Project hero"
-				class="w-full h-full object-cover"
+				class="w-full max-h-[500px] object-contain"
 			/>
 		</div>
 	{/if}
-	
+
 	<!-- Image Gallery -->
 	{#if galleryImages && galleryImages.length > 0}
 		<div class="space-y-4">
 			<h3 class="text-2xl font-semibold text-center">Gallery</h3>
-			
+
 			<!-- Main Gallery Image -->
-			<div class="relative aspect-video rounded-lg overflow-hidden shadow-lg">
-				<img 
-					src={galleryImages[currentImageIndex]} 
+			<div class="relative rounded-lg overflow-hidden shadow-lg max-h-[450px] bg-muted/50 flex items-center justify-center">
+				<img
+					src={galleryImages[currentImageIndex]}
 					alt="Gallery image {currentImageIndex + 1}"
-					class="w-full h-full object-cover"
+					class="w-full max-h-[450px] object-contain"
 				/>
 				
 				{#if galleryImages.length > 1}
