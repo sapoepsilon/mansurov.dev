@@ -13,10 +13,12 @@ export async function load({ params }) {
 			});
 		}
 
-		incrementViewCount(post.id);
+		await incrementViewCount(post.id);
+
+		const updatedPost = await getPostBySlug(slug);
 
 		return {
-			post,
+			post: updatedPost,
 			error: null
 		};
 	} catch (err) {
