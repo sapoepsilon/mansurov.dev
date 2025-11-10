@@ -27,6 +27,9 @@
 		"vite": "^5.0.3"
 	},
 	"type": "module",
+	"engines": {
+		"node": ">=20.0.0"
+	},
 	"dependencies": {
 		"@aws-sdk/client-s3": "^3.873.0",
 		"@dimforge/rapier3d-compat": "^0.14.0",
