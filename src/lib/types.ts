@@ -10,3 +10,15 @@ export interface GitHubRepo {
 	topics: string[];
 	pinned?: boolean;
 }
+
+export interface Post {
+	id: number;
+	title: string;
+	slug: string;
+	content: string;
+	published_at: string | null;
+	edited_at: string | null;
+	view_count: number;
+	created_at: string;
+	updated_at: string;
+}
