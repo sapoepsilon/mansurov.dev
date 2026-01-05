@@ -155,7 +155,7 @@
 				<span>•</span>
 				<span>{getReadingTime(post.content)} min read</span>
 				<span>•</span>
-				<span>{post.view_count} views</span>
+				<span>{post.view_count ?? 0} views</span>
 				{#if post.edited_at && post.edited_at !== post.published_at}
 					<span>•</span>
 					<span class="text-xs">Updated {formatDate(post.edited_at)}</span>
