@@ -97,7 +97,7 @@
 										<span>•</span>
 										<span>{getReadingTime(post.content)} min read</span>
 										<span>•</span>
-										<span>{post.view_count} views</span>
+										<span>{post.view_count ?? 0} views</span>
 									</div>
 								</div>
 
