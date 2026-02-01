@@ -55,7 +55,7 @@
                                 </picture>
                                 <!-- Dark overlay for better text readability -->
                                 <div
-                                    class="absolute inset-0 bg-black/60 group-hover:bg-primary/80 transition-colors duration-300"
+                                    class="absolute inset-0 bg-black/60 group-hover:bg-black/40 transition-colors duration-300"
                                 ></div>
                                 <div class="relative z-10">
                                     <!-- Pack Info -->

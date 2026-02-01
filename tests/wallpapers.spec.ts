@@ -81,6 +81,44 @@ test.describe('Wallpapers Page', () => {
 		await expect(page.getByRole('heading', { name: 'Wallpapers' })).toBeVisible();
 	});
 
+	test('wallpaper card overlay should not turn white on hover in dark mode', async ({ page }) => {
+		await page.goto('/wallpapers');
+
+		// Enable dark mode by adding the .dark class to the html element
+		await page.evaluate(() => document.documentElement.classList.add('dark'));
+
+		// Find the wallpaper card overlay (the div that sits on top of the image)
+		const overlay = page.locator('article.group .absolute.inset-0').first();
+		await expect(overlay).toBeVisible();
+
+		// Get the overlay's classes and verify it does NOT use bg-primary on hover
+		const classes = await overlay.getAttribute('class');
+		expect(classes).not.toContain('group-hover:bg-primary');
+
+		// Hover over the wallpaper card
+		const card = page.locator('article.group').first();
+		await card.hover();
+
+		// Wait for transition
+		await page.waitForTimeout(400);
+
+		// Get the computed background color of the overlay while hovered
+		const bgColor = await overlay.evaluate((el) => {
+			return window.getComputedStyle(el).backgroundColor;
+		});
+
+		// The background should remain dark (not white/near-white)
+		// Parse the rgba value and check that it's not a light color
+		const match = bgColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+		if (match) {
+			const [, r, g, b] = match.map(Number);
+			// In dark mode on hover, RGB values should be low (dark), not high (white)
+			// White would be rgb(250+, 250+, 250+)
+			const isLight = r > 200 && g > 200 && b > 200;
+			expect(isLight).toBe(false);
+		}
+	});
+
 	test('should be responsive on mobile devices', async ({ page }) => {
 		// Test mobile viewport
 		await page.setViewportSize({ width: 375, height: 667 });
