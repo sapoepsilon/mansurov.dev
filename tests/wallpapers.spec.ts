@@ -45,12 +45,14 @@ test.describe('Wallpapers Page', () => {
 		await expect(page.getByRole('heading', { name: 'Mobile' })).toBeVisible();
 		await expect(page.getByRole('heading', { name: 'Desktop' })).toBeVisible();
 		
-		// Check that wallpaper images are present
-		await expect(page.getByAltText('Timpanogos Trip mobile wallpaper')).toBeVisible();
-		await expect(page.getByAltText('Timpanogos Trip desktop wallpaper')).toBeVisible();
+		// Check that wallpaper images are present (alt text uses individual image name)
+		// Two mobile IPhoneFrame instances exist (md:hidden for mobile, hidden md:block for desktop)
+		// On desktop viewport, the second one (hidden md:block) is visible
+		await expect(page.getByAltText('Summit mobile wallpaper').nth(1)).toBeVisible();
+		await expect(page.getByAltText('Summit desktop wallpaper')).toBeVisible();
 		
 		// Check that download button is present
-		await expect(page.getByRole('button', { name: 'Download' })).toBeVisible();
+		await expect(page.getByRole('button', { name: 'Download', exact: true })).toBeVisible();
 		
 		// Check back navigation link
 		const backLink = page.getByRole('link', { name: 'Back to Wallpapers' });
@@ -164,6 +166,25 @@ test.describe('Wallpapers Page', () => {
 		const filename = requestUrl.searchParams.get('filename');
 		expect(filename).toBeTruthy();
 		expect(filename).toMatch(/\.jpg$/);
+	});
+
+	test('mobile image should render on initial page load without interaction', async ({ page }) => {
+		// Test at mobile viewport where only the md:hidden IPhoneFrame is shown
+		await page.setViewportSize({ width: 375, height: 667 });
+		await page.goto('/wallpapers/timpanogos-trip');
+
+		// Wait for wallpapers to load
+		await page.waitForSelector('text=Loading wallpapers...', { state: 'hidden', timeout: 20000 });
+
+		// Mobile image inside iPhone frame should be visible immediately
+		const mobileImage = page.getByAltText('Summit mobile wallpaper').first();
+		await expect(mobileImage).toBeVisible({ timeout: 5000 });
+
+		// Image should have non-zero dimensions (not collapsed)
+		const box = await mobileImage.boundingBox();
+		expect(box).toBeTruthy();
+		expect(box!.width).toBeGreaterThan(50);
+		expect(box!.height).toBeGreaterThan(50);
 	});
 
 	test('download buttons should have independent loading states', async ({ page }) => {
