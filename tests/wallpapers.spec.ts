@@ -166,7 +166,7 @@ test.describe('Wallpapers Page', () => {
 		expect(filename).toMatch(/\.jpg$/);
 	});
 
-	test('download button should show loading state while download starts', async ({ page }) => {
+	test('download buttons should have independent loading states', async ({ page }) => {
 		await page.goto('/wallpapers/timpanogos-trip');
 
 		// Wait for wallpapers to load
@@ -184,14 +184,18 @@ test.describe('Wallpapers Page', () => {
 
 		await mobileDownloadButton.click();
 
-		// Button should show "Downloading..." text and spinner
+		// Mobile button should show spinner
 		await expect(page.getByText('Downloading...').first()).toBeVisible({ timeout: 3000 });
-
-		// Button should be disabled during download
 		await expect(mobileDownloadButton).toBeDisabled();
-
-		// Spinner element should be present
 		const spinner = page.locator('.animate-spin').first();
 		await expect(spinner).toBeVisible();
+
+		// Desktop button should NOT be affected (only visible on desktop viewports)
+		if (page.viewportSize()?.width && page.viewportSize()!.width > 768) {
+			const desktopDownloadButton = page.getByRole('button', { name: 'Download Desktop' });
+			if (await desktopDownloadButton.isVisible()) {
+				await expect(desktopDownloadButton).toBeEnabled();
+			}
+		}
 	});
 });

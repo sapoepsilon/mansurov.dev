@@ -125,11 +125,10 @@
             currentIndex === 0 ? images.length - 1 : currentIndex - 1;
     }
 
-    let downloading = false;
+    let downloadingMobile = false;
+    let downloadingDesktop = false;
 
-    function downloadImage(url: string, filename: string) {
-        if (downloading) return;
-        downloading = true;
+    function triggerDownload(url: string, filename: string, onDone: () => void) {
         const downloadUrl = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
         // Use a hidden iframe to trigger the download without navigating the page.
         // The endpoint returns a 302 redirect to a pre-signed R2 URL
@@ -140,20 +139,22 @@
         document.body.appendChild(iframe);
         setTimeout(() => {
             document.body.removeChild(iframe);
-            downloading = false;
+            onDone();
         }, 5000);
     }
 
     function downloadMobile() {
         const current = images[currentIndex];
-        if (!current) return;
-        downloadImage(current.mobile, `${current.name}_Mobile.jpg`);
+        if (!current || downloadingMobile) return;
+        downloadingMobile = true;
+        triggerDownload(current.mobile, `${current.name}_Mobile.jpg`, () => { downloadingMobile = false; });
     }
 
     function downloadDesktop() {
         const current = images[currentIndex];
-        if (!current) return;
-        downloadImage(current.desktop, `${current.name}_Desktop.jpg`);
+        if (!current || downloadingDesktop) return;
+        downloadingDesktop = true;
+        triggerDownload(current.desktop, `${current.name}_Desktop.jpg`, () => { downloadingDesktop = false; });
     }
 
     $: currentImage = images[currentIndex];
@@ -275,10 +276,10 @@
 
                     <button
                         on:click={downloadMobile}
-                        disabled={downloading}
+                        disabled={downloadingMobile}
                         class="flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        {#if downloading}
+                        {#if downloadingMobile}
                             <div class="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
                             Downloading...
                         {:else}
@@ -300,10 +301,10 @@
 
                     <button
                         on:click={downloadDesktop}
-                        disabled={downloading}
+                        disabled={downloadingDesktop}
                         class="absolute bottom-8 flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium z-[24] disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        {#if downloading}
+                        {#if downloadingDesktop}
                             <div class="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
                             Downloading...
                         {:else}
