@@ -129,6 +129,43 @@ test.describe('Wallpapers Page', () => {
 		await expect(page.getByRole('heading', { name: 'Timpanogos Trip' })).toBeVisible();
 	});
 
+	test('download button should use server proxy and download full-resolution image', async ({ page }) => {
+		await page.goto('/wallpapers/timpanogos-trip');
+
+		// Wait for wallpapers to load
+		await page.waitForSelector('text=Loading wallpapers...', { state: 'hidden', timeout: 20000 });
+		await page.waitForTimeout(1000);
+
+		const mobileDownloadButton = page.getByRole('button', { name: 'Download' }).first();
+		await expect(mobileDownloadButton).toBeVisible({ timeout: 10000 });
+
+		// Intercept the navigation/request triggered by clicking download
+		const requestPromise = page.waitForRequest((req) =>
+			req.url().includes('/api/download')
+		, { timeout: 10000 });
+
+		await mobileDownloadButton.click();
+
+		const request = await requestPromise;
+		const requestUrl = new URL(request.url());
+
+		// Verify it goes through the server-side download proxy
+		expect(requestUrl.pathname).toBe('/api/download');
+
+		// Verify the url param points to the full-resolution JPG (not preview WebP)
+		const imageUrl = requestUrl.searchParams.get('url');
+		expect(imageUrl).toBeTruthy();
+		expect(imageUrl).toContain('wallapappers.mansurov.dev');
+		expect(imageUrl).toMatch(/\.jpg$/);
+		expect(imageUrl).not.toContain('preview');
+		expect(imageUrl).not.toContain('.webp');
+
+		// Verify a filename is provided
+		const filename = requestUrl.searchParams.get('filename');
+		expect(filename).toBeTruthy();
+		expect(filename).toMatch(/\.jpg$/);
+	});
+
 	test('should test wallpaper download functionality on timpanogos page', async ({ page, context }) => {
 		// Set up console logging
 		const consoleLogs: string[] = [];

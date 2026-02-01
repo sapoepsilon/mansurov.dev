@@ -126,9 +126,9 @@
     }
 
     function downloadImage(url: string, filename: string) {
+        const downloadUrl = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
         const link = document.createElement("a");
-        link.href = url;
-        link.download = filename;
+        link.href = downloadUrl;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
