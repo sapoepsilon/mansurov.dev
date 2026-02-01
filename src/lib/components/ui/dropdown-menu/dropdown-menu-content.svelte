@@ -13,7 +13,7 @@
 	{transitionConfig}
 	{sideOffset}
 	class={cn(
-		"text-popover-foreground z-50 min-w-[8rem] rounded-md p-1 focus:outline-none ",
+		"bg-popover text-popover-foreground z-50 min-w-[12rem] rounded-lg border p-1 shadow-md focus:outline-none ",
 		className
 	)}
 	{...$$restProps}

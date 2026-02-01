@@ -37,14 +37,14 @@
             <div class="sm:hidden">
                 <DropdownMenu.Root>
                     <DropdownMenu.Trigger
-                        ><Menu size={20} /></DropdownMenu.Trigger
+                        ><Menu size={24} /></DropdownMenu.Trigger
                     >
-                    <DropdownMenu.Content>
+                    <DropdownMenu.Content class="w-full">
                         {#each menuItems as item}
                             <DropdownMenu.Item
                                 on:click={() => goto(item.path)}
                                 class={cn(
-                                    "text-sm font-medium transition-colors",
+                                    "px-4 py-3 text-base font-medium transition-colors",
                                     currentPath === item.path
                                         ? "text-green-500 bg-green-100 dark:bg-green-900"
                                         : "",
