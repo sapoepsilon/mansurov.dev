@@ -127,30 +127,21 @@
 
     let downloading = false;
 
-    async function downloadImage(url: string, filename: string) {
+    function downloadImage(url: string, filename: string) {
         if (downloading) return;
         downloading = true;
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error('Download failed');
-            const blob = await response.blob();
-            const blobUrl = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = blobUrl;
-            link.download = filename;
-            link.rel = "noopener";
-            link.style.display = "none";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            // Delay revoking so iOS Safari has time to start the download
-            setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
-        } catch {
-            // Fallback: open image directly in new tab
-            window.open(url, '_blank');
-        } finally {
+        const downloadUrl = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+        // Use a hidden iframe to trigger the download without navigating the page.
+        // The endpoint returns a 302 redirect to a pre-signed R2 URL
+        // with Content-Disposition: attachment, so the browser downloads directly from R2.
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = downloadUrl;
+        document.body.appendChild(iframe);
+        setTimeout(() => {
+            document.body.removeChild(iframe);
             downloading = false;
-        }
+        }, 5000);
     }
 
     function downloadMobile() {

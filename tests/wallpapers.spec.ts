@@ -129,7 +129,7 @@ test.describe('Wallpapers Page', () => {
 		await expect(page.getByRole('heading', { name: 'Timpanogos Trip' })).toBeVisible();
 	});
 
-	test('download button should fetch full-resolution image as blob', async ({ page }) => {
+	test('download button should use pre-signed URL redirect for full-resolution image', async ({ page }) => {
 		await page.goto('/wallpapers/timpanogos-trip');
 
 		// Wait for wallpapers to load
@@ -139,27 +139,34 @@ test.describe('Wallpapers Page', () => {
 		const mobileDownloadButton = page.getByRole('button', { name: 'Download' }).first();
 		await expect(mobileDownloadButton).toBeVisible({ timeout: 10000 });
 
-		// Intercept the fetch to the full-resolution image
+		// Intercept the navigation to /api/download
 		const requestPromise = page.waitForRequest((req) =>
-			req.url().includes('wallapappers.mansurov.dev') && req.url().endsWith('.jpg')
+			req.url().includes('/api/download')
 		, { timeout: 10000 });
 
 		await mobileDownloadButton.click();
 
 		const request = await requestPromise;
-		const requestUrl = request.url();
+		const requestUrl = new URL(request.url());
 
-		// Verify it fetches full-resolution JPG directly (not preview WebP)
-		expect(requestUrl).toContain('wallapappers.mansurov.dev');
-		expect(requestUrl).toMatch(/\.jpg$/);
-		expect(requestUrl).not.toContain('preview');
-		expect(requestUrl).not.toContain('.webp');
+		// Verify it goes through the download endpoint
+		expect(requestUrl.pathname).toBe('/api/download');
 
-		// Verify it does NOT go through the old server proxy
-		expect(requestUrl).not.toContain('/api/download');
+		// Verify the url param points to the full-resolution JPG (not preview WebP)
+		const imageUrl = requestUrl.searchParams.get('url');
+		expect(imageUrl).toBeTruthy();
+		expect(imageUrl).toContain('wallapappers.mansurov.dev');
+		expect(imageUrl).toMatch(/\.jpg$/);
+		expect(imageUrl).not.toContain('preview');
+		expect(imageUrl).not.toContain('.webp');
+
+		// Verify a filename is provided
+		const filename = requestUrl.searchParams.get('filename');
+		expect(filename).toBeTruthy();
+		expect(filename).toMatch(/\.jpg$/);
 	});
 
-	test('download button should show loading spinner while downloading', async ({ page }) => {
+	test('download button should show loading state while download starts', async ({ page }) => {
 		await page.goto('/wallpapers/timpanogos-trip');
 
 		// Wait for wallpapers to load
@@ -169,9 +176,9 @@ test.describe('Wallpapers Page', () => {
 		const mobileDownloadButton = page.getByRole('button', { name: 'Download' }).first();
 		await expect(mobileDownloadButton).toBeVisible({ timeout: 10000 });
 
-		// Slow down the image fetch so we can observe the loading state
-		await page.route('**/wallapappers.mansurov.dev/**/*.jpg', async (route) => {
-			await new Promise(resolve => setTimeout(resolve, 2000));
+		// Slow down the /api/download response so we can observe the loading state
+		await page.route('**/api/download**', async (route) => {
+			await new Promise(resolve => setTimeout(resolve, 5000));
 			await route.continue();
 		});
 
@@ -186,55 +193,5 @@ test.describe('Wallpapers Page', () => {
 		// Spinner element should be present
 		const spinner = page.locator('.animate-spin').first();
 		await expect(spinner).toBeVisible();
-	});
-
-	test('should download wallpaper via client-side blob on timpanogos page', async ({ page }) => {
-		// Mock the wallpaper image fetch to return a small JPEG blob
-		// This avoids CORS issues in the test environment
-		await page.route('**/wallapappers.mansurov.dev/**/*.jpg', async (route) => {
-			const jpegHeader = Buffer.from([
-				0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46,
-				0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01,
-				0x00, 0x01, 0x00, 0x00, 0xFF, 0xD9
-			]);
-			await route.fulfill({
-				status: 200,
-				contentType: 'image/jpeg',
-				body: jpegHeader,
-			});
-		});
-
-		await page.goto('/wallpapers/timpanogos-trip');
-
-		// Wait for wallpapers to load
-		await page.waitForSelector('text=Loading wallpapers...', { state: 'hidden', timeout: 20000 });
-		await page.waitForTimeout(1000);
-
-		const mobileDownloadButton = page.getByRole('button', { name: 'Download' }).first();
-		await expect(mobileDownloadButton).toBeVisible({ timeout: 10000 });
-
-		// Set up download listener before clicking
-		const downloadPromise = page.waitForEvent('download', { timeout: 30000 });
-
-		await mobileDownloadButton.click();
-
-		// Wait for download to start
-		const download = await downloadPromise;
-
-		// Verify download filename
-		const filename = download.suggestedFilename();
-		expect(filename).toBeTruthy();
-		expect(filename).toMatch(/\.jpg$/);
-
-		// Test desktop download if viewport is wide enough
-		if (page.viewportSize()?.width && page.viewportSize()!.width > 768) {
-			const desktopDownloadButton = page.getByRole('button', { name: 'Download Desktop' });
-			if (await desktopDownloadButton.isVisible()) {
-				const desktopDownloadPromise = page.waitForEvent('download', { timeout: 30000 });
-				await desktopDownloadButton.click();
-				const desktopDownload = await desktopDownloadPromise;
-				expect(desktopDownload.suggestedFilename()).toMatch(/\.jpg$/);
-			}
-		}
 	});
 });
