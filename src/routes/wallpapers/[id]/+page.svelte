@@ -125,25 +125,36 @@
             currentIndex === 0 ? images.length - 1 : currentIndex - 1;
     }
 
-    function downloadImage(url: string, filename: string) {
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    let downloadingMobile = false;
+    let downloadingDesktop = false;
+
+    function triggerDownload(url: string, filename: string, onDone: () => void) {
+        const downloadUrl = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
+        // Use a hidden iframe to trigger the download without navigating the page.
+        // The endpoint returns a 302 redirect to a pre-signed R2 URL
+        // with Content-Disposition: attachment, so the browser downloads directly from R2.
+        const iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.src = downloadUrl;
+        document.body.appendChild(iframe);
+        setTimeout(() => {
+            document.body.removeChild(iframe);
+            onDone();
+        }, 5000);
     }
 
     function downloadMobile() {
         const current = images[currentIndex];
-        if (!current) return;
-        downloadImage(current.mobile, `${current.name}_Mobile.jpg`);
+        if (!current || downloadingMobile) return;
+        downloadingMobile = true;
+        triggerDownload(current.mobile, `${current.name}_Mobile.jpg`, () => { downloadingMobile = false; });
     }
 
     function downloadDesktop() {
         const current = images[currentIndex];
-        if (!current) return;
-        downloadImage(current.desktop, `${current.name}_Desktop.jpg`);
+        if (!current || downloadingDesktop) return;
+        downloadingDesktop = true;
+        triggerDownload(current.desktop, `${current.name}_Desktop.jpg`, () => { downloadingDesktop = false; });
     }
 
     $: currentImage = images[currentIndex];
@@ -265,10 +276,16 @@
 
                     <button
                         on:click={downloadMobile}
-                        class="flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium mt-6"
+                        disabled={downloadingMobile}
+                        class="flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        <Download class="w-4 h-4" />
-                        Download
+                        {#if downloadingMobile}
+                            <div class="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
+                            Downloading...
+                        {:else}
+                            <Download class="w-4 h-4" />
+                            Download
+                        {/if}
                     </button>
                 </div>
 
@@ -284,10 +301,16 @@
 
                     <button
                         on:click={downloadDesktop}
-                        class="absolute bottom-8 flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium z-[24]"
+                        disabled={downloadingDesktop}
+                        class="absolute bottom-8 flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium z-[24] disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        <Download class="w-4 h-4" />
-                        Download Desktop
+                        {#if downloadingDesktop}
+                            <div class="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
+                            Downloading...
+                        {:else}
+                            <Download class="w-4 h-4" />
+                            Download Desktop
+                        {/if}
                     </button>
                 </div>
             </div>

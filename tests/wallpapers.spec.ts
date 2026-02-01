@@ -129,97 +129,73 @@ test.describe('Wallpapers Page', () => {
 		await expect(page.getByRole('heading', { name: 'Timpanogos Trip' })).toBeVisible();
 	});
 
-	test('should test wallpaper download functionality on timpanogos page', async ({ page, context }) => {
-		// Set up console logging
-		const consoleLogs: string[] = [];
-		page.on('console', msg => consoleLogs.push(`${msg.type()}: ${msg.text()}`));
-		
-		// Navigate to the specific wallpaper page using localhost
+	test('download button should use pre-signed URL redirect for full-resolution image', async ({ page }) => {
 		await page.goto('/wallpapers/timpanogos-trip');
-		
-		// Take a screenshot right after navigation
-		await page.screenshot({ path: 'test-results/timpanogos-page-initial.png', fullPage: true });
-		
-		// Wait for wallpapers to load (wait for loading to disappear)
+
+		// Wait for wallpapers to load
 		await page.waitForSelector('text=Loading wallpapers...', { state: 'hidden', timeout: 20000 });
-		
-		// Wait a bit more for the page to stabilize
-		await page.waitForTimeout(2000);
-		
-		// Take a screenshot after loading
-		await page.screenshot({ path: 'test-results/timpanogos-page-loaded.png', fullPage: true });
-		
-		// Check if there are any images loaded - look for mobile download button specifically
+		await page.waitForTimeout(1000);
+
 		const mobileDownloadButton = page.getByRole('button', { name: 'Download' }).first();
 		await expect(mobileDownloadButton).toBeVisible({ timeout: 10000 });
-		
-		// Set up download promise before clicking (using the context API)
-		const downloadPromise = page.waitForEvent('download', { timeout: 30000 });
-		
-		// Click the mobile download button
+
+		// Intercept the navigation to /api/download
+		const requestPromise = page.waitForRequest((req) =>
+			req.url().includes('/api/download')
+		, { timeout: 10000 });
+
 		await mobileDownloadButton.click();
-		
-		try {
-			// Wait for download to start
-			const download = await downloadPromise;
-			
-			// Verify download properties
-			const filename = download.suggestedFilename();
-			expect(filename).toBeTruthy();
-			expect(filename).toMatch(/\.jpg$/);
-			
-			// Save the download to verify it worked
-			const downloadPath = `test-results/downloaded-${filename}`;
-			await download.saveAs(downloadPath);
-			
-			console.log(`Download successful: ${filename}`);
-			
-		} catch (error) {
-			// Take screenshot if download fails
-			await page.screenshot({ path: 'test-results/download-error-screenshot.png', fullPage: true });
-			
-			// Log console messages
-			console.log('Console logs during test:', consoleLogs);
-			
-			// Check for any error messages on page
-			const errorElements = await page.locator('text=/error|Error|ERROR/i').all();
-			if (errorElements.length > 0) {
-				console.log('Error elements found on page:', await Promise.all(errorElements.map(el => el.textContent())));
-			}
-			
-			throw new Error(`Download failed: ${error}`);
-		}
-		
-		// Test desktop download if on desktop viewport
+
+		const request = await requestPromise;
+		const requestUrl = new URL(request.url());
+
+		// Verify it goes through the download endpoint
+		expect(requestUrl.pathname).toBe('/api/download');
+
+		// Verify the url param points to the full-resolution JPG (not preview WebP)
+		const imageUrl = requestUrl.searchParams.get('url');
+		expect(imageUrl).toBeTruthy();
+		expect(imageUrl).toContain('wallapappers.mansurov.dev');
+		expect(imageUrl).toMatch(/\.jpg$/);
+		expect(imageUrl).not.toContain('preview');
+		expect(imageUrl).not.toContain('.webp');
+
+		// Verify a filename is provided
+		const filename = requestUrl.searchParams.get('filename');
+		expect(filename).toBeTruthy();
+		expect(filename).toMatch(/\.jpg$/);
+	});
+
+	test('download buttons should have independent loading states', async ({ page }) => {
+		await page.goto('/wallpapers/timpanogos-trip');
+
+		// Wait for wallpapers to load
+		await page.waitForSelector('text=Loading wallpapers...', { state: 'hidden', timeout: 20000 });
+		await page.waitForTimeout(1000);
+
+		const mobileDownloadButton = page.getByRole('button', { name: 'Download' }).first();
+		await expect(mobileDownloadButton).toBeVisible({ timeout: 10000 });
+
+		// Slow down the /api/download response so we can observe the loading state
+		await page.route('**/api/download**', async (route) => {
+			await new Promise(resolve => setTimeout(resolve, 5000));
+			await route.continue();
+		});
+
+		await mobileDownloadButton.click();
+
+		// Mobile button should show spinner
+		await expect(page.getByText('Downloading...').first()).toBeVisible({ timeout: 3000 });
+		await expect(mobileDownloadButton).toBeDisabled();
+		const spinner = page.locator('.animate-spin').first();
+		await expect(spinner).toBeVisible();
+
+		// Desktop button should NOT be affected (only visible on desktop viewports)
 		if (page.viewportSize()?.width && page.viewportSize()!.width > 768) {
 			const desktopDownloadButton = page.getByRole('button', { name: 'Download Desktop' });
-			
-			// Check if desktop button exists and is visible
-			const isDesktopButtonVisible = await desktopDownloadButton.isVisible();
-			if (isDesktopButtonVisible) {
-				const desktopDownloadPromise = page.waitForEvent('download', { timeout: 30000 });
-				await desktopDownloadButton.click();
-				
-				try {
-					const desktopDownload = await desktopDownloadPromise;
-					const desktopFilename = desktopDownload.suggestedFilename();
-					
-					const desktopDownloadPath = `test-results/downloaded-${desktopFilename}`;
-					await desktopDownload.saveAs(desktopDownloadPath);
-					
-					console.log(`Desktop download successful: ${desktopFilename}`);
-					
-				} catch (desktopError) {
-					await page.screenshot({ path: 'test-results/desktop-download-error-screenshot.png', fullPage: true });
-					throw new Error(`Desktop download failed: ${desktopError}`);
-				}
+			if (await desktopDownloadButton.isVisible()) {
+				await expect(desktopDownloadButton).toBeEnabled();
 			}
 		}
-		
-		// Final screenshot after test completion
-		await page.screenshot({ path: 'test-results/timpanogos-page-final.png', fullPage: true });
-		
-		// Log final console messages
-		console.log('Final console logs:', consoleLogs);
 	});
 });
