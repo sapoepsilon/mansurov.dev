@@ -138,10 +138,13 @@
             const link = document.createElement("a");
             link.href = blobUrl;
             link.download = filename;
+            link.rel = "noopener";
+            link.style.display = "none";
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(blobUrl);
+            // Delay revoking so iOS Safari has time to start the download
+            setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
         } catch {
             // Fallback: open image directly in new tab
             window.open(url, '_blank');
@@ -281,10 +284,16 @@
 
                     <button
                         on:click={downloadMobile}
-                        class="flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium mt-6"
+                        disabled={downloading}
+                        class="flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        <Download class="w-4 h-4" />
-                        Download
+                        {#if downloading}
+                            <div class="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
+                            Downloading...
+                        {:else}
+                            <Download class="w-4 h-4" />
+                            Download
+                        {/if}
                     </button>
                 </div>
 
@@ -300,10 +309,16 @@
 
                     <button
                         on:click={downloadDesktop}
-                        class="absolute bottom-8 flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium z-[24]"
+                        disabled={downloading}
+                        class="absolute bottom-8 flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium z-[24] disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        <Download class="w-4 h-4" />
-                        Download Desktop
+                        {#if downloading}
+                            <div class="w-4 h-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin"></div>
+                            Downloading...
+                        {:else}
+                            <Download class="w-4 h-4" />
+                            Download Desktop
+                        {/if}
                     </button>
                 </div>
             </div>

@@ -129,7 +129,7 @@ test.describe('Wallpapers Page', () => {
 		await expect(page.getByRole('heading', { name: 'Timpanogos Trip' })).toBeVisible();
 	});
 
-	test('download button should use server proxy and download full-resolution image', async ({ page }) => {
+	test('download button should fetch full-resolution image as blob', async ({ page }) => {
 		await page.goto('/wallpapers/timpanogos-trip');
 
 		// Wait for wallpapers to load
@@ -139,124 +139,102 @@ test.describe('Wallpapers Page', () => {
 		const mobileDownloadButton = page.getByRole('button', { name: 'Download' }).first();
 		await expect(mobileDownloadButton).toBeVisible({ timeout: 10000 });
 
-		// Intercept the navigation/request triggered by clicking download
+		// Intercept the fetch to the full-resolution image
 		const requestPromise = page.waitForRequest((req) =>
-			req.url().includes('/api/download')
+			req.url().includes('wallapappers.mansurov.dev') && req.url().endsWith('.jpg')
 		, { timeout: 10000 });
 
 		await mobileDownloadButton.click();
 
 		const request = await requestPromise;
-		const requestUrl = new URL(request.url());
+		const requestUrl = request.url();
 
-		// Verify it goes through the server-side download proxy
-		expect(requestUrl.pathname).toBe('/api/download');
+		// Verify it fetches full-resolution JPG directly (not preview WebP)
+		expect(requestUrl).toContain('wallapappers.mansurov.dev');
+		expect(requestUrl).toMatch(/\.jpg$/);
+		expect(requestUrl).not.toContain('preview');
+		expect(requestUrl).not.toContain('.webp');
 
-		// Verify the url param points to the full-resolution JPG (not preview WebP)
-		const imageUrl = requestUrl.searchParams.get('url');
-		expect(imageUrl).toBeTruthy();
-		expect(imageUrl).toContain('wallapappers.mansurov.dev');
-		expect(imageUrl).toMatch(/\.jpg$/);
-		expect(imageUrl).not.toContain('preview');
-		expect(imageUrl).not.toContain('.webp');
-
-		// Verify a filename is provided
-		const filename = requestUrl.searchParams.get('filename');
-		expect(filename).toBeTruthy();
-		expect(filename).toMatch(/\.jpg$/);
+		// Verify it does NOT go through the old server proxy
+		expect(requestUrl).not.toContain('/api/download');
 	});
 
-	test('should test wallpaper download functionality on timpanogos page', async ({ page, context }) => {
-		// Set up console logging
-		const consoleLogs: string[] = [];
-		page.on('console', msg => consoleLogs.push(`${msg.type()}: ${msg.text()}`));
-		
-		// Navigate to the specific wallpaper page using localhost
+	test('download button should show loading spinner while downloading', async ({ page }) => {
 		await page.goto('/wallpapers/timpanogos-trip');
-		
-		// Take a screenshot right after navigation
-		await page.screenshot({ path: 'test-results/timpanogos-page-initial.png', fullPage: true });
-		
-		// Wait for wallpapers to load (wait for loading to disappear)
+
+		// Wait for wallpapers to load
 		await page.waitForSelector('text=Loading wallpapers...', { state: 'hidden', timeout: 20000 });
-		
-		// Wait a bit more for the page to stabilize
-		await page.waitForTimeout(2000);
-		
-		// Take a screenshot after loading
-		await page.screenshot({ path: 'test-results/timpanogos-page-loaded.png', fullPage: true });
-		
-		// Check if there are any images loaded - look for mobile download button specifically
+		await page.waitForTimeout(1000);
+
 		const mobileDownloadButton = page.getByRole('button', { name: 'Download' }).first();
 		await expect(mobileDownloadButton).toBeVisible({ timeout: 10000 });
-		
-		// Set up download promise before clicking (using the context API)
-		const downloadPromise = page.waitForEvent('download', { timeout: 30000 });
-		
-		// Click the mobile download button
+
+		// Slow down the image fetch so we can observe the loading state
+		await page.route('**/wallapappers.mansurov.dev/**/*.jpg', async (route) => {
+			await new Promise(resolve => setTimeout(resolve, 2000));
+			await route.continue();
+		});
+
 		await mobileDownloadButton.click();
-		
-		try {
-			// Wait for download to start
-			const download = await downloadPromise;
-			
-			// Verify download properties
-			const filename = download.suggestedFilename();
-			expect(filename).toBeTruthy();
-			expect(filename).toMatch(/\.jpg$/);
-			
-			// Save the download to verify it worked
-			const downloadPath = `test-results/downloaded-${filename}`;
-			await download.saveAs(downloadPath);
-			
-			console.log(`Download successful: ${filename}`);
-			
-		} catch (error) {
-			// Take screenshot if download fails
-			await page.screenshot({ path: 'test-results/download-error-screenshot.png', fullPage: true });
-			
-			// Log console messages
-			console.log('Console logs during test:', consoleLogs);
-			
-			// Check for any error messages on page
-			const errorElements = await page.locator('text=/error|Error|ERROR/i').all();
-			if (errorElements.length > 0) {
-				console.log('Error elements found on page:', await Promise.all(errorElements.map(el => el.textContent())));
-			}
-			
-			throw new Error(`Download failed: ${error}`);
-		}
-		
-		// Test desktop download if on desktop viewport
+
+		// Button should show "Downloading..." text and spinner
+		await expect(page.getByText('Downloading...').first()).toBeVisible({ timeout: 3000 });
+
+		// Button should be disabled during download
+		await expect(mobileDownloadButton).toBeDisabled();
+
+		// Spinner element should be present
+		const spinner = page.locator('.animate-spin').first();
+		await expect(spinner).toBeVisible();
+	});
+
+	test('should download wallpaper via client-side blob on timpanogos page', async ({ page }) => {
+		// Mock the wallpaper image fetch to return a small JPEG blob
+		// This avoids CORS issues in the test environment
+		await page.route('**/wallapappers.mansurov.dev/**/*.jpg', async (route) => {
+			const jpegHeader = Buffer.from([
+				0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46,
+				0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01,
+				0x00, 0x01, 0x00, 0x00, 0xFF, 0xD9
+			]);
+			await route.fulfill({
+				status: 200,
+				contentType: 'image/jpeg',
+				body: jpegHeader,
+			});
+		});
+
+		await page.goto('/wallpapers/timpanogos-trip');
+
+		// Wait for wallpapers to load
+		await page.waitForSelector('text=Loading wallpapers...', { state: 'hidden', timeout: 20000 });
+		await page.waitForTimeout(1000);
+
+		const mobileDownloadButton = page.getByRole('button', { name: 'Download' }).first();
+		await expect(mobileDownloadButton).toBeVisible({ timeout: 10000 });
+
+		// Set up download listener before clicking
+		const downloadPromise = page.waitForEvent('download', { timeout: 30000 });
+
+		await mobileDownloadButton.click();
+
+		// Wait for download to start
+		const download = await downloadPromise;
+
+		// Verify download filename
+		const filename = download.suggestedFilename();
+		expect(filename).toBeTruthy();
+		expect(filename).toMatch(/\.jpg$/);
+
+		// Test desktop download if viewport is wide enough
 		if (page.viewportSize()?.width && page.viewportSize()!.width > 768) {
 			const desktopDownloadButton = page.getByRole('button', { name: 'Download Desktop' });
-			
-			// Check if desktop button exists and is visible
-			const isDesktopButtonVisible = await desktopDownloadButton.isVisible();
-			if (isDesktopButtonVisible) {
+			if (await desktopDownloadButton.isVisible()) {
 				const desktopDownloadPromise = page.waitForEvent('download', { timeout: 30000 });
 				await desktopDownloadButton.click();
-				
-				try {
-					const desktopDownload = await desktopDownloadPromise;
-					const desktopFilename = desktopDownload.suggestedFilename();
-					
-					const desktopDownloadPath = `test-results/downloaded-${desktopFilename}`;
-					await desktopDownload.saveAs(desktopDownloadPath);
-					
-					console.log(`Desktop download successful: ${desktopFilename}`);
-					
-				} catch (desktopError) {
-					await page.screenshot({ path: 'test-results/desktop-download-error-screenshot.png', fullPage: true });
-					throw new Error(`Desktop download failed: ${desktopError}`);
-				}
+				const desktopDownload = await desktopDownloadPromise;
+				expect(desktopDownload.suggestedFilename()).toMatch(/\.jpg$/);
 			}
 		}
-		
-		// Final screenshot after test completion
-		await page.screenshot({ path: 'test-results/timpanogos-page-final.png', fullPage: true });
-		
-		// Log final console messages
-		console.log('Final console logs:', consoleLogs);
 	});
 });
