@@ -125,13 +125,29 @@
             currentIndex === 0 ? images.length - 1 : currentIndex - 1;
     }
 
-    function downloadImage(url: string, filename: string) {
-        const downloadUrl = `/api/download?url=${encodeURIComponent(url)}&filename=${encodeURIComponent(filename)}`;
-        const link = document.createElement("a");
-        link.href = downloadUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    let downloading = false;
+
+    async function downloadImage(url: string, filename: string) {
+        if (downloading) return;
+        downloading = true;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Download failed');
+            const blob = await response.blob();
+            const blobUrl = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = blobUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(blobUrl);
+        } catch {
+            // Fallback: open image directly in new tab
+            window.open(url, '_blank');
+        } finally {
+            downloading = false;
+        }
     }
 
     function downloadMobile() {
