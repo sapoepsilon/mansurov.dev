@@ -20,7 +20,6 @@ export const POST: RequestHandler = async ({ request, platform }) => {
 		const msg = createMimeMessage();
 		msg.setSender({ name: 'mansurov.dev contact', addr: FROM_EMAIL });
 		msg.setRecipient(TO_EMAIL);
-		msg.setHeader('Reply-To', email);
 		msg.setSubject(`Contact Form Submission from ${name}`);
 		msg.addMessage({
 			contentType: 'text/plain',
