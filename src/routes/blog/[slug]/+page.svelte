@@ -2,7 +2,6 @@
 	import { fade } from 'svelte/transition';
 	import { cn } from '$lib/utils.js';
 	import { marked } from 'marked';
-	import DOMPurify from 'isomorphic-dompurify';
 	import { browser } from '$app/environment';
 	import { onMount } from 'svelte';
 	import type { Post } from '$lib/types';
@@ -94,7 +93,9 @@
 		return '\n\n' + '<br/>\n\n'.repeat(extraBreaks);
 	});
 
-	const htmlContent = DOMPurify.sanitize(marked.parse(processedContent) as string);
+	// ponytail: content is admin-authored (own blog); raw-HTML XSS is gated at the
+	// Rails API's write auth, not jsdom-based DOMPurify (which can't run on Workers).
+	const htmlContent = marked.parse(processedContent) as string;
 </script>
 
 <svelte:head>
