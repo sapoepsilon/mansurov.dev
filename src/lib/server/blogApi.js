@@ -1,10 +1,8 @@
-import { PRIVATE_BLOG_API_URL } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 
 /**
  * @typedef {import('$lib/types').Post} Post
  */
-
-const API_BASE_URL = PRIVATE_BLOG_API_URL;
 
 export class BlogApiError extends Error {
 	constructor(message, status) {
@@ -21,6 +19,8 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000) {
 	try {
 		const response = await fetch(url, {
 			...options,
+			// Workers' fetch sends no User-Agent; the blog API 403s empty-UA requests
+			headers: { 'User-Agent': 'mansurov.dev', ...options.headers },
 			signal: controller.signal
 		});
 		clearTimeout(timeoutId);
@@ -36,7 +36,7 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000) {
  */
 export async function getAllPosts() {
 	try {
-		const response = await fetchWithTimeout(`${API_BASE_URL}/posts`, {
+		const response = await fetchWithTimeout(`${env.PRIVATE_BLOG_API_URL}/posts`, {
 			headers: {
 				Accept: 'application/json'
 			}
@@ -79,7 +79,7 @@ export async function getPostBySlug(slug) {
 export async function incrementViewCount(id) {
 	try {
 		const response = await fetchWithTimeout(
-			`${API_BASE_URL}/posts/${id}/increment_view`,
+			`${env.PRIVATE_BLOG_API_URL}/posts/${id}/increment_view`,
 			{
 				method: 'POST',
 				headers: {
@@ -108,7 +108,7 @@ export async function incrementViewCount(id) {
 export async function createPost(postData) {
 	try {
 		const response = await fetchWithTimeout(
-			`${API_BASE_URL}/posts`,
+			`${env.PRIVATE_BLOG_API_URL}/posts`,
 			{
 				method: 'POST',
 				headers: {
@@ -150,7 +150,7 @@ export async function createPost(postData) {
 export async function updatePost(id, postData) {
 	try {
 		const response = await fetchWithTimeout(
-			`${API_BASE_URL}/posts/${id}`,
+			`${env.PRIVATE_BLOG_API_URL}/posts/${id}`,
 			{
 				method: 'PATCH',
 				headers: {
@@ -186,7 +186,7 @@ export async function updatePost(id, postData) {
 export async function deletePost(id) {
 	try {
 		const response = await fetchWithTimeout(
-			`${API_BASE_URL}/posts/${id}`,
+			`${env.PRIVATE_BLOG_API_URL}/posts/${id}`,
 			{
 				method: 'DELETE',
 				headers: {

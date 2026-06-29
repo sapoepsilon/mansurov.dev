@@ -5,5 +5,10 @@ export default defineConfig({
 	plugins: [sveltekit()],
 	server: {
 		port: 5174
+	},
+	build: {
+		rollupOptions: {
+			external: ['cloudflare:email']
+		}
 	}
 });

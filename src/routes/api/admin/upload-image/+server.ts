@@ -7,9 +7,14 @@ function isLocalhost(request: Request): boolean {
 	return !!host && (host.startsWith('localhost') || host.startsWith('127.0.0.1'));
 }
 
-export const POST: RequestHandler = async ({ request }) => {
+export const POST: RequestHandler = async ({ request, platform }) => {
 	if (!isLocalhost(request)) {
 		throw error(403, 'Admin API only available on localhost');
+	}
+
+	const bucket = platform?.env?.BUCKET;
+	if (!bucket) {
+		throw error(500, 'R2 bucket binding not available');
 	}
 
 	try {
@@ -25,7 +30,7 @@ export const POST: RequestHandler = async ({ request }) => {
 			throw error(400, 'No post slug provided');
 		}
 
-		const result = await uploadBlogImage(file, postSlug);
+		const result = await uploadBlogImage(bucket, file, postSlug);
 
 		if (!result.success) {
 			throw error(500, result.error || 'Failed to upload image');

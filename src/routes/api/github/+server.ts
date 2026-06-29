@@ -1,13 +1,20 @@
 // src/routes/api/github/+server.ts
-import { VITE_GITHUB_TOKEN, VITE_GITHUB_USERNAME } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 
 const GITHUB_API_URL = 'https://api.github.com';
 
-const headers = {
-    Authorization: `token ${VITE_GITHUB_TOKEN}`,
-    'Content-Type': 'application/json',
+const ghHeaders = () => {
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        // GitHub's API rejects requests without a User-Agent
+        'User-Agent': 'mansurov.dev',
+    };
+    // Token is optional: public repos need no auth; it only raises rate limits
+    // and enables the admin PATCH. A bad/expired token 401s, so only send a real one.
+    if (env.VITE_GITHUB_TOKEN) headers.Authorization = `token ${env.VITE_GITHUB_TOKEN}`;
+    return headers;
 };
 
 // Cache structure
@@ -25,8 +32,8 @@ export const GET: RequestHandler = async () => {
 
     // Fetch new data if cache is invalid or doesn't exist
     const response = await fetch(
-        `${GITHUB_API_URL}/users/${VITE_GITHUB_USERNAME}/repos?sort=updated&direction=desc`,
-        { headers }
+        `${GITHUB_API_URL}/users/${env.VITE_GITHUB_USERNAME}/repos?sort=updated&direction=desc`,
+        { headers: ghHeaders() }
     );
 
     if (!response.ok) {
@@ -47,7 +54,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
     const repo = await request.json();
     const response = await fetch(`${GITHUB_API_URL}/repos/${repo.full_name}`, {
         method: 'PATCH',
-        headers,
+        headers: ghHeaders(),
         body: JSON.stringify({
             name: repo.name,
             description: repo.description,
