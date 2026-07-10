@@ -3,12 +3,40 @@
 	import { cn } from '$lib/utils.js';
 	import { marked } from 'marked';
 	import { browser } from '$app/environment';
+	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import type { Post } from '$lib/types';
 
 	export let data;
 
 	const { post } = data;
+
+	function getPlainDescription(content: string, maxLength: number = 160): string {
+		const plainText = content
+			.replace(/```[\s\S]*?```/g, ' ')
+			.replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+			.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+			.replace(/[#*`_>\[\]]/g, '')
+			.replace(/\s+/g, ' ')
+			.trim();
+		if (plainText.length <= maxLength) return plainText;
+		return plainText.slice(0, maxLength).trim() + '...';
+	}
+
+	function getFirstImage(content: string): string | null {
+		const match = content.match(/!\[[^\]]*\]\(([^)\s]+)\)/);
+		return match ? match[1] : null;
+	}
+
+	const description = getPlainDescription(post.content);
+	const firstImage = getFirstImage(post.content);
+
+	$: ogImage = firstImage
+		? firstImage.startsWith('http')
+			? firstImage
+			: `${$page.url.origin}${firstImage}`
+		: null;
+	$: canonicalUrl = `${$page.url.origin}/blog/${post.slug}`;
 
 	let isLocalhost = false;
 	$: if (browser) {
@@ -100,10 +128,22 @@
 
 <svelte:head>
 	<title>{post.title} | Ismatulla Mansurov</title>
-	<meta name="description" content={post.content.slice(0, 160)} />
+	<meta name="description" content={description} />
+	<link rel="canonical" href={canonicalUrl} />
 	<meta property="og:title" content="{post.title} | Ismatulla Mansurov" />
-	<meta property="og:description" content={post.content.slice(0, 160)} />
+	<meta property="og:description" content={description} />
 	<meta property="og:type" content="article" />
+	<meta property="og:url" content={canonicalUrl} />
+	<meta property="og:site_name" content="mansurov.dev" />
+	{#if ogImage}
+		<meta property="og:image" content={ogImage} />
+	{/if}
+	<meta name="twitter:card" content={ogImage ? 'summary_large_image' : 'summary'} />
+	<meta name="twitter:title" content="{post.title} | Ismatulla Mansurov" />
+	<meta name="twitter:description" content={description} />
+	{#if ogImage}
+		<meta name="twitter:image" content={ogImage} />
+	{/if}
 	{#if post.published_at}
 		<meta property="article:published_time" content={post.published_at} />
 	{/if}
