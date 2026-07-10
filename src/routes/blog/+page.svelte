@@ -18,9 +18,18 @@
 	}
 
 	function getExcerpt(content: string, maxLength: number = 150): string {
-		const plainText = content.replace(/[#*`_\[\]]/g, '').trim();
+		const plainText = content
+			.replace(/!\[[^\]]*\]\([^)]*\)/g, '')
+			.replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+			.replace(/[#*`_\[\]]/g, '')
+			.trim();
 		if (plainText.length <= maxLength) return plainText;
 		return plainText.slice(0, maxLength).trim() + '...';
+	}
+
+	function getFirstImage(content: string): string | null {
+		const match = content.match(/!\[[^\]]*\]\(([^)\s]+)\)/);
+		return match ? match[1] : null;
 	}
 
 	function getReadingTime(content: string): number {
@@ -82,45 +91,56 @@
 							href="/blog/{post.slug}"
 							class="block p-6 md:p-8 rounded-2xl border bg-card hover:shadow-lg transition-all duration-300 group-hover:border-primary/20"
 						>
-							<div class="space-y-4">
-								<div class="space-y-2">
-									<h2
-										class="text-2xl md:text-3xl font-semibold group-hover:text-primary transition-colors"
-									>
-										{post.title}
-									</h2>
+							<div class="flex flex-col-reverse sm:flex-row gap-6 items-start">
+								<div class="space-y-4 flex-1 min-w-0">
+									<div class="space-y-2">
+										<h2
+											class="text-2xl md:text-3xl font-semibold group-hover:text-primary transition-colors"
+										>
+											{post.title}
+										</h2>
 
-									<div class="flex items-center gap-4 text-sm text-muted-foreground">
-										<time datetime={post.published_at || ''}>
-											{formatDate(post.published_at)}
-										</time>
-										<span>•</span>
-										<span>{getReadingTime(post.content)} min read</span>
-										<span>•</span>
-										<span>{post.view_count ?? 0} views</span>
+										<div class="flex items-center gap-4 text-sm text-muted-foreground">
+											<time datetime={post.published_at || ''}>
+												{formatDate(post.published_at)}
+											</time>
+											<span>•</span>
+											<span>{getReadingTime(post.content)} min read</span>
+											<span>•</span>
+											<span>{post.view_count ?? 0} views</span>
+										</div>
+									</div>
+
+									<p class="text-muted-foreground leading-relaxed">
+										{getExcerpt(post.content)}
+									</p>
+
+									<div class="flex items-center text-primary font-medium">
+										<span>Read more</span>
+										<svg
+											class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform"
+											fill="none"
+											stroke="currentColor"
+											viewBox="0 0 24 24"
+										>
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M17 8l4 4m0 0l-4 4m4-4H3"
+											></path>
+										</svg>
 									</div>
 								</div>
 
-								<p class="text-muted-foreground leading-relaxed">
-									{getExcerpt(post.content)}
-								</p>
-
-								<div class="flex items-center text-primary font-medium">
-									<span>Read more</span>
-									<svg
-										class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform"
-										fill="none"
-										stroke="currentColor"
-										viewBox="0 0 24 24"
-									>
-										<path
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											stroke-width="2"
-											d="M17 8l4 4m0 0l-4 4m4-4H3"
-										></path>
-									</svg>
-								</div>
+								{#if getFirstImage(post.content)}
+									<img
+										src={getFirstImage(post.content)}
+										alt=""
+										loading="lazy"
+										class="w-full sm:w-48 md:w-56 h-40 sm:h-32 md:h-36 object-cover rounded-xl border shrink-0"
+									/>
+								{/if}
 							</div>
 						</a>
 					</article>
