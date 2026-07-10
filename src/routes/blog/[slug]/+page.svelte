@@ -44,6 +44,17 @@
 	}
 
 	onMount(() => {
+		const tweetEmbeds = document.querySelectorAll('blockquote.twitter-tweet');
+		if (tweetEmbeds.length > 0) {
+			if (document.documentElement.classList.contains('dark')) {
+				tweetEmbeds.forEach((bq) => bq.setAttribute('data-theme', 'dark'));
+			}
+			const widgetScript = document.createElement('script');
+			widgetScript.src = 'https://platform.twitter.com/widgets.js';
+			widgetScript.async = true;
+			document.head.appendChild(widgetScript);
+		}
+
 		const preBlocks = document.querySelectorAll('pre');
 		preBlocks.forEach((pre) => {
 			const wrapper = document.createElement('div');
