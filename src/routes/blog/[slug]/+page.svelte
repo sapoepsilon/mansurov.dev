@@ -227,7 +227,8 @@
 				prose-strong:font-semibold prose-strong:text-foreground
 				prose-ul:my-6 prose-ol:my-6
 				prose-li:my-2
-				prose-img:rounded-lg prose-img:shadow-lg prose-img:my-8"
+				prose-img:rounded-lg prose-img:shadow-lg prose-img:my-8
+				prose-code:before:content-none prose-code:after:content-none"
 		>
 			{@html htmlContent}
 		</div>
