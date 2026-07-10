@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Blog Pages', () => {
 	test('should display blog listing page', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		await expect(page).toHaveURL('/blog');
 		await expect(page.locator('h1')).toContainText('Blog');
@@ -10,7 +10,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should have Blog link in navbar', async ({ page }) => {
-		await page.goto('http://localhost:5173/about');
+		await page.goto('/about');
 
 		const blogLink = page.locator('a[href="/blog"]').first();
 		await expect(blogLink).toBeVisible();
@@ -18,7 +18,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should navigate to blog from navbar', async ({ page }) => {
-		await page.goto('http://localhost:5173/about');
+		await page.goto('/about');
 
 		await page.click('a[href="/blog"]');
 		await expect(page).toHaveURL('/blog');
@@ -26,7 +26,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should display error state gracefully when API is unavailable', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		const errorIcon = page.locator('svg.text-destructive');
 		const noPostsIcon = page.locator('svg.text-muted-foreground');
@@ -38,7 +38,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should display posts when API is available', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		await page.waitForLoadState('networkidle');
 
@@ -59,7 +59,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should display post metadata correctly', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		await page.waitForLoadState('networkidle');
 
@@ -79,7 +79,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should navigate to individual post page', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		await page.waitForLoadState('networkidle');
 
@@ -99,7 +99,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should display post content with proper formatting', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		await page.waitForLoadState('networkidle');
 
@@ -125,7 +125,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should handle back navigation from post to listing', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		await page.waitForLoadState('networkidle');
 
@@ -145,14 +145,14 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should display 404 for non-existent post slug', async ({ page }) => {
-		const response = await page.goto('http://localhost:5173/blog/non-existent-post-slug-12345');
+		const response = await page.goto('/blog/non-existent-post-slug-12345');
 
 		expect(response?.status()).toBe(404);
 	});
 
 	test('should have responsive design on mobile', async ({ page }) => {
 		await page.setViewportSize({ width: 375, height: 667 });
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		await expect(page.locator('h1')).toBeVisible();
 		await expect(page.locator('h1')).toContainText('Blog');
@@ -169,7 +169,7 @@ test.describe('Blog Pages', () => {
 
 	test('should have responsive design on desktop', async ({ page }) => {
 		await page.setViewportSize({ width: 1280, height: 720 });
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		await expect(page.locator('h1')).toBeVisible();
 		await expect(page.locator('h1')).toContainText('Blog');
@@ -179,7 +179,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should display proper meta tags for SEO', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		const title = await page.title();
 		expect(title).toContain('Blog');
@@ -191,7 +191,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should display proper meta tags on individual post', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		await page.waitForLoadState('networkidle');
 
@@ -215,8 +215,80 @@ test.describe('Blog Pages', () => {
 		}
 	});
 
+	test('should display thumbnail on listing for posts with images', async ({ page }) => {
+		await page.goto('/blog');
+
+		await page.waitForLoadState('networkidle');
+
+		const articles = page.locator('article');
+		const articleCount = await articles.count();
+
+		if (articleCount > 0) {
+			const thumbnails = page.locator('article img');
+			const thumbnailCount = await thumbnails.count();
+
+			if (thumbnailCount > 0) {
+				await expect(thumbnails.first()).toBeVisible();
+
+				const src = await thumbnails.first().getAttribute('src');
+				expect(src).toBeTruthy();
+			}
+		}
+	});
+
+	test('should not show raw markdown syntax in listing excerpts', async ({ page }) => {
+		await page.goto('/blog');
+
+		await page.waitForLoadState('networkidle');
+
+		const excerpts = page.locator('article p.text-muted-foreground');
+		const excerptCount = await excerpts.count();
+
+		for (let i = 0; i < excerptCount; i++) {
+			const text = await excerpts.nth(i).textContent();
+			expect(text).not.toContain('![');
+			expect(text).not.toContain('](');
+		}
+	});
+
+	test('should have complete Open Graph tags on individual post', async ({ page }) => {
+		await page.goto('/blog');
+
+		await page.waitForLoadState('networkidle');
+
+		const articles = page.locator('article');
+		const articleCount = await articles.count();
+
+		if (articleCount > 0) {
+			await articles.first().locator('a').click();
+			await page.waitForLoadState('networkidle');
+
+			const ogUrl = await page.locator('meta[property="og:url"]').getAttribute('content');
+			expect(ogUrl).toMatch(/\/blog\/.+/);
+
+			const ogSiteName = await page
+				.locator('meta[property="og:site_name"]')
+				.getAttribute('content');
+			expect(ogSiteName).toBe('mansurov.dev');
+
+			const twitterCard = await page.locator('meta[name="twitter:card"]').getAttribute('content');
+			expect(['summary', 'summary_large_image']).toContain(twitterCard);
+
+			const description = await page.locator('meta[name="description"]').getAttribute('content');
+			expect(description).toBeTruthy();
+			expect(description).not.toContain('![');
+
+			const ogImage = page.locator('meta[property="og:image"]');
+			if ((await ogImage.count()) > 0) {
+				const imageUrl = await ogImage.getAttribute('content');
+				expect(imageUrl).toMatch(/^https?:\/\//);
+				expect(twitterCard).toBe('summary_large_image');
+			}
+		}
+	});
+
 	test('should show updated date when post is edited', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		await page.waitForLoadState('networkidle');
 
@@ -236,7 +308,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should maintain theme consistency with rest of site', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		const section = page.locator('section.bg-background');
 		await expect(section).toBeVisible();
@@ -246,7 +318,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should display footer navigation on post page', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		await page.waitForLoadState('networkidle');
 
@@ -266,7 +338,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should handle markdown content rendering', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		await page.waitForLoadState('networkidle');
 
@@ -285,7 +357,7 @@ test.describe('Blog Pages', () => {
 	});
 
 	test('should highlight active nav item when on blog page', async ({ page }) => {
-		await page.goto('http://localhost:5173/blog');
+		await page.goto('/blog');
 
 		const blogNavLink = page.locator('a[href="/blog"]').first();
 		await expect(blogNavLink).toHaveClass(/text-green-500/);

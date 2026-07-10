@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Projects Page', () => {
 	test('should display projects page with Whispera project', async ({ page }) => {
 		// Navigate to projects page
-		await page.goto('http://localhost:5173/projects');
+		await page.goto('/projects');
 		
 		// Verify we're on the projects page
 		await expect(page).toHaveURL('/projects');
@@ -18,7 +18,7 @@ test.describe('Projects Page', () => {
 
 	test('should navigate to Whispera project detail page', async ({ page }) => {
 		// Navigate to projects page
-		await page.goto('http://localhost:5173/projects');
+		await page.goto('/projects');
 		
 		// Click on Whispera project
 		await page.click('a[href="/projects/whispera"]');
@@ -32,7 +32,7 @@ test.describe('Projects Page', () => {
 
 	test('should display Whispera project features', async ({ page }) => {
 		// Navigate to Whispera detail page
-		await page.goto('http://localhost:5173/projects/whispera');
+		await page.goto('/projects/whispera');
 		
 		// Verify key features section exists
 		await expect(page.getByText('Key Features')).toBeVisible();
@@ -46,7 +46,7 @@ test.describe('Projects Page', () => {
 
 	test('should display Whispera tech stack', async ({ page }) => {
 		// Navigate to projects page
-		await page.goto('http://localhost:5173/projects');
+		await page.goto('/projects');
 		
 		// Verify Swift tech stack badge is visible using first occurrence
 		await expect(page.getByText('Swift').first()).toBeVisible();
@@ -56,7 +56,7 @@ test.describe('Projects Page', () => {
 
 	test('should have working GitHub link for Whispera', async ({ page }) => {
 		// Navigate to Whispera detail page
-		await page.goto('http://localhost:5173/projects/whispera');
+		await page.goto('/projects/whispera');
 		
 		// Scroll to bottom to see GitHub link
 		await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
@@ -69,7 +69,7 @@ test.describe('Projects Page', () => {
 
 	test('should display technical implementation details', async ({ page }) => {
 		// Navigate to Whispera detail page
-		await page.goto('http://localhost:5173/projects/whispera');
+		await page.goto('/projects/whispera');
 		
 		// Verify technical section exists
 		await expect(page.getByText('Technical Implementation')).toBeVisible();
@@ -83,7 +83,7 @@ test.describe('Projects Page', () => {
 	test('should have responsive design', async ({ page }) => {
 		// Test mobile viewport
 		await page.setViewportSize({ width: 375, height: 667 });
-		await page.goto('http://localhost:5173/projects');
+		await page.goto('/projects');
 		
 		// Verify Whispera project is still visible on mobile using heading
 		await expect(page.getByRole('heading', { name: 'Whispera' })).toBeVisible();
@@ -91,7 +91,7 @@ test.describe('Projects Page', () => {
 		
 		// Test desktop viewport
 		await page.setViewportSize({ width: 1280, height: 720 });
-		await page.goto('http://localhost:5173/projects');
+		await page.goto('/projects');
 		
 		// Verify layout on desktop
 		await expect(page.getByRole('heading', { name: 'Whispera' })).toBeVisible();
@@ -99,7 +99,7 @@ test.describe('Projects Page', () => {
 
 	test('should display media gallery and video elements', async ({ page }) => {
 		// Navigate to Whispera detail page
-		await page.goto('http://localhost:5173/projects/whispera');
+		await page.goto('/projects/whispera');
 		
 		// Check if gallery section exists (even if images don't load)
 		const gallerySection = page.locator('section').filter({ hasText: 'Gallery' });
@@ -116,7 +116,7 @@ test.describe('Projects Page', () => {
 
 	test('should handle navigation back to projects from detail page', async ({ page }) => {
 		// Start at projects page
-		await page.goto('http://localhost:5173/projects');
+		await page.goto('/projects');
 		
 		// Navigate to Whispera detail
 		await page.click('a[href="/projects/whispera"]');
@@ -132,7 +132,7 @@ test.describe('Projects Page', () => {
 
 	test('should maintain Whispera project data integrity', async ({ page }) => {
 		// Navigate to projects page
-		await page.goto('http://localhost:5173/projects');
+		await page.goto('/projects');
 		
 		// Verify Whispera project card has all expected elements
 		const projectCard = page.locator('article').filter({ hasText: 'Whispera' });
@@ -155,7 +155,7 @@ test.describe('Projects Page', () => {
 
 	test('should display actual Whispera images correctly', async ({ page }) => {
 		// Navigate to projects page
-		await page.goto('http://localhost:5173/projects');
+		await page.goto('/projects');
 		
 		// Verify hero image loads on projects page
 		const heroImage = page.locator('img[src="/whisper-statusbar.png"]');
