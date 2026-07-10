@@ -29,3 +29,4 @@ playwright/.cache/
 
 # MCP Configuration
 .mcp.json
+.wrangler/
